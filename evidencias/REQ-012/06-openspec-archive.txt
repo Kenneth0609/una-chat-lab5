@@ -1,0 +1,16 @@
+Task status: 0/4 tasks
+Warning: 4 incomplete task(s) found. Continuing due to --yes flag.
+
+Specs to update:
+  message-length-limit: create
+Applying changes to openspec/specs/message-length-limit/spec.md:
+  + 3 added
+Totals: + 3, ~ 0, - 0, → 0
+Specs updated successfully.
+Change 'req-012-messages-stay-short' archived as '2026-10-28-req-012-messages-stay-short'.
+
+--- openspec validate --specs --strict ---
+✓ spec/chat-messages
+✓ spec/message-length-limit
+Totals: 2 passed, 0 failed (2 items)
+- Validating...

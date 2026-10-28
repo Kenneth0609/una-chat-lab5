@@ -1,18 +1,108 @@
 {
-  "overall_status": "error",
-  "overall_exit": 10,
-  "stopped_early": "error",
-  "ran": 1,
+  "overall_status": "pass",
+  "overall_exit": 0,
+  "stopped_early": null,
+  "ran": 10,
   "gates": [
     {
       "gate": "spec-lint",
       "tier": 0,
-      "status": "error",
-      "summary": "failed to launch gate: [WinError 2] El sistema no puede encontrar el archivo especificado",
+      "status": "pass",
+      "summary": "1 requirement(s), all with IDs + acceptance criteria",
       "findings": [],
-      "confidence": 0,
-      "exit": 10,
+      "confidence": 1,
+      "exit": 0,
       "route": "spec"
+    },
+    {
+      "gate": "trace-gate",
+      "tier": 0,
+      "status": "pass",
+      "summary": "1/1 requirements traced (intents=1, tagged=1)",
+      "findings": [],
+      "confidence": 1,
+      "exit": 0,
+      "route": "tests"
+    },
+    {
+      "gate": "redgreen-gate",
+      "tier": 0,
+      "status": "pass",
+      "summary": "suite is GREEN as expected",
+      "findings": [],
+      "confidence": 1,
+      "exit": 0,
+      "route": "code"
+    },
+    {
+      "gate": "intent-gate",
+      "tier": 0,
+      "status": "pass",
+      "summary": "9 test file(s): all tests assert intent [engine ast:9]",
+      "findings": [],
+      "confidence": 0.9,
+      "exit": 0,
+      "route": "tests"
+    },
+    {
+      "gate": "secret-scan",
+      "tier": 0,
+      "status": "pass",
+      "summary": "no secrets found in 21 file(s) scanned",
+      "findings": [],
+      "confidence": 1,
+      "exit": 0,
+      "route": "code"
+    },
+    {
+      "gate": "test-lock",
+      "tier": 0,
+      "status": "pass",
+      "summary": "14 locked test file(s) unchanged since Phase 2",
+      "findings": [],
+      "confidence": 1,
+      "exit": 0,
+      "route": "review"
+    },
+    {
+      "gate": "oversight-integrity",
+      "tier": 0,
+      "status": "pass",
+      "summary": "no oversight files touched (4 path(s) checked, git mode)",
+      "findings": [],
+      "confidence": 1,
+      "exit": 0,
+      "route": "review"
+    },
+    {
+      "gate": "deps-gate",
+      "tier": 0,
+      "status": "pass",
+      "summary": "1 manifest(s) checked vs 7949cd5b88d145bf4834962101a5f82446cf6136, no new dependencies",
+      "findings": [],
+      "confidence": 1,
+      "exit": 0,
+      "route": "review"
+    },
+    {
+      "gate": "separation-gate",
+      "tier": 0,
+      "status": "pass",
+      "summary": "1 unit(s): tests and code authored by separate contexts",
+      "findings": [],
+      "confidence": 1,
+      "exit": 0,
+      "route": "tests"
+    },
+    {
+      "gate": "diff-budget",
+      "tier": 0,
+      "status": "pass",
+      "summary": "diff within budget: 24 changed line(s) via git mode vs budget 700",
+      "findings": [],
+      "confidence": 1,
+      "exit": 0,
+      "route": "review"
     }
   ],
   "escalation": []
