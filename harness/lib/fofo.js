@@ -12,6 +12,26 @@ const { git } = require('./git');
 // public/ o libs/ NO cuenta: ese es justamente el rojo esperado de una prueba escrita antes del codigo.
 const ROJO_EQUIVOCADO = [String.raw`SyntaxError`, String.raw`ImportError`, String.raw`ModuleNotFoundError`, String.raw`Cannot find module '(?![^']*(?:public|libs)[/\\])`, String.raw`No tests? (ran|found|collected)`, String.raw`collected 0 items`, String.raw`command not found`, String.raw`ReferenceError`, String.raw`Undefined\. Implement with the following snippet`, String.raw`Multiple step definitions match`];
 
+// gate-runner de FoFo lanza los gates por su shebang ("#!/usr/bin/env python3"), que no existe en Windows nativo (WinError 2).
+// Parche minimo e idempotente sobre la copia vendorizada: en Windows usa el interprete real (python / node).
+function parcharWindows(scriptsDir) {
+  const f = path.join(scriptsDir, 'gate-runner');
+  const texto = fs.readFileSync(f, 'utf8');
+  if (texto.includes('HARNESS-WINDOWS-PATCH')) return false;
+  const viejo = '        return parts + [script_path]';
+  const nuevo = [
+    '        if os.name == "nt":  # HARNESS-WINDOWS-PATCH: no existe /usr/bin/env en Windows',
+    '            if any("python" in p for p in parts):',
+    '                return [sys.executable, script_path]',
+    '            if any("node" in p for p in parts):',
+    '                return ["node", script_path]',
+    '        return parts + [script_path]',
+  ].join('\n');
+  if (!texto.includes(viejo)) throw new Error('No se pudo parchear gate-runner: cambio el codigo de FoFo');
+  fs.writeFileSync(f, texto.replace(viejo, nuevo));
+  return true;
+}
+
 const SCRIPTS_REL = path.join('plugins', 'fofo', 'skills', 'sdlc', 'scripts');
 const fofoDir = () => path.join(cfg.vendorDir, 'agentic-sdlc');
 const scriptsDir = () => path.join(fofoDir(), SCRIPTS_REL);
@@ -37,6 +57,7 @@ async function setup(log = () => {}) {
       await git(fofoDir(), ['checkout', '-q', cfg.fofoCommit]);
     }
   });
+  if (process.platform === 'win32') parcharWindows(scriptsDir());
   const python = await findPython();
   if (!python) throw new Error('FoFo necesita Python 3. Instale Python 3 o defina HARNESS_PYTHON con la ruta de python.exe');
   return { python, scripts: scriptsDir() };

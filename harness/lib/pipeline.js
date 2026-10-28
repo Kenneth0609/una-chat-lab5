@@ -284,6 +284,9 @@ async function faseVerify(ctx) {
     run.save();
     ctx.say(`Gates: ${g.report.overall_status} (${run.data.gates.map((x) => `${x.gate}=${x.status}`).join(', ')})`);
     if (g.report.overall_status === 'pass') return;
+    // ERROR-DE-GATE: un gate que no pudo ejecutarse es un problema de infraestructura, no del Autor ni del Juez
+    const roto = g.report.gates.filter((x) => x.status === 'error');
+    if (roto.length) throw new Failure(`Un gate de FoFo no pudo ejecutarse: ${roto.map((x) => `${x.gate} (${x.summary})`).join('; ')}`);
 
     const esc = g.report.escalation || [];
     const fallos = g.report.gates.filter((x) => x.status === 'fail' || x.status === 'escalate');
