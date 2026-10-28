@@ -1,0 +1,11 @@
+[
+  {
+    "id": "Q1",
+    "pregunta": "¿Qué texto exacto debe ver el visitante cuando intenta enviar un mensaje vacío?",
+    "que_dice_el_requerimiento": "Solo dice que el sistema debe \"decirle al visitante que escriba algo\", sin fijar la frase exacta.",
+    "que_falta_definir": "La redacción literal del aviso en español.",
+    "como_afecta": "Cambia únicamente el texto mostrado en el área de aviso; no cambia qué se bloquea ni el comportamiento del campo.",
+    "supuesto_adoptado": "Se usó el texto \"Escribe un mensaje antes de enviarlo.\"",
+    "bloqueante": false
+  }
+]
