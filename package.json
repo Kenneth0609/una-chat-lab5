@@ -17,6 +17,10 @@
   },
   "jest": {
     "testEnvironment": "node",
+    "verbose": true,
+    "reporters": [
+      "default"
+    ],
     "testMatch": [
       "**/tests/integration/**/*.test.js"
     ],
