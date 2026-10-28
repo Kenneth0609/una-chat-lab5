@@ -1,0 +1,19 @@
+{
+  "overall_status": "error",
+  "overall_exit": 10,
+  "stopped_early": "error",
+  "ran": 1,
+  "gates": [
+    {
+      "gate": "spec-lint",
+      "tier": 0,
+      "status": "error",
+      "summary": "failed to launch gate: [WinError 2] El sistema no puede encontrar el archivo especificado",
+      "findings": [],
+      "confidence": 0,
+      "exit": 10,
+      "route": "spec"
+    }
+  ],
+  "escalation": []
+}
