@@ -1,0 +1,5 @@
+=== RESUMEN ===
+FAIL Unitarias (Mocha)                pasan=97 fallan=1 (0.3s) causa=asercion
+FAIL Integracion (Jest + Supertest)   pasan=29 fallan=2 (2.0s) causa=asercion
+FAIL BDD (Cucumber + Playwright)      pasan=3 fallan=4 (20.6s) causa=asercion
+FAIL End-to-end (Playwright)          pasan=12 fallan=3 (28.1s) causa=asercion

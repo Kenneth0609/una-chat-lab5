@@ -1,0 +1,6 @@
+REQ-012:
+  - intent: "Bloquea el envio (Send) de un mensaje de 281 caracteres: no se agrega a la conversacion de ningun cliente conectado"
+  - intent: "Permite el envio de un mensaje de exactamente 280 caracteres (el limite es 'mayor que 280', no '280 o mas')"
+  - intent: "Bloquea tambien un mensaje de 281 caracteres compuesto solo de espacios (no se recorta/trimea antes de contar la longitud)"
+  - intent: "Tras el rechazo por mensaje demasiado largo, el campo de mensaje conserva el texto que escribio el visitante (no se vacia)"
+  - intent: "Tras el rechazo por mensaje demasiado largo, el area de aviso (role alert) le dice al visitante que el mensaje es demasiado largo"
