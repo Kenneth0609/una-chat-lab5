@@ -1,0 +1,6 @@
+REQ-011:
+  - intent: "Username vacio + mensaje real: el mensaje NO se agrega al transcript, el campo username queda vacio y se avisa al visitante que escriba un nombre."
+  - intent: "Username solo con espacios + mensaje real: el mensaje NO se agrega al transcript, el campo username queda vacio y se avisa al visitante que escriba un nombre."
+  - intent: "Username formado solo por tabs y saltos de linea + mensaje real: el mensaje NO se agrega al transcript, el campo username queda vacio y se avisa al visitante que escriba un nombre."
+  - intent: "Username con texto real rodeado de espacios (p.ej. '  Ana  ') + mensaje real: el envio SI se acepta, el mensaje SI se agrega al transcript y NO aparece el aviso de 'escriba un nombre'."
+  - intent: "Username vacio junto con un mensaje tambien vacio o solo espacios: esta regla NO produce el aviso de 'escriba un nombre' (ese caso lo gobierna otra regla, la del mensaje vacio)."
