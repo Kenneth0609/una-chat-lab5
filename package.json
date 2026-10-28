@@ -12,8 +12,11 @@
     "test": "mocha",
     "test:unit": "mocha",
     "test:integration": "jest tests/integration --runInBand --env=node",
+    "test:bdd": "cucumber-js",
     "test:e2e": "playwright test --project=chromium",
-    "test:all": "npm test && npm run test:integration && npm run test:e2e"
+    "test:all": "node harness/scripts/run-suites.js",
+    "harness": "node harness/bin/sdlc.js",
+    "test:harness": "node --test \"harness/test/**/*.test.js\""
   },
   "jest": {
     "testEnvironment": "node",
@@ -30,6 +33,7 @@
     ]
   },
   "devDependencies": {
+    "@cucumber/cucumber": "^13.3.0",
     "@playwright/test": "^1.64.1",
     "@types/node": "^26.6.6",
     "jest": "^30.5.2",

@@ -18,10 +18,51 @@
   var nombre = document.getElementById('nombre');
   var mensaje = document.getElementById('m');
   var lista = document.getElementById('messages');
+  var aviso = document.getElementById('aviso');
+
+  // Punto de extension del chat. Cada regla de envio vive en su propio archivo dentro de
+  // public/validators/ (el servidor los entrega juntos en /validators.js), asi varias
+  // personas o agentes pueden agregar reglas en paralelo sin tocar este archivo.
+  //
+  //   UNAChat.registerSendValidator(function (ctx) { ... })
+  //     ctx     = { nombre: <valor del campo Username>, mensaje: <valor del campo de mensaje> }
+  //     retorna = null si el envio es valido, o
+  //               { campo: 'nombre' | 'mensaje', texto: '<aviso para el visitante>', limpiar: true | false }
+  //               (limpiar: vaciar el campo indicado; false: conservar lo escrito)
+  //   Los validadores corren en orden alfabetico del nombre de archivo; gana el primero que falla.
+  var validators = [];
+  window.UNAChat = {
+    registerSendValidator: function (fn) { validators.push(fn); },
+    notify: function (texto) { aviso.textContent = texto; },
+    clearNotice: function () { aviso.textContent = ''; }
+  };
+
+  // devuelve el primer fallo de validacion (o null) y lo aplica en pantalla
+  function validarEnvio(ctx) {
+    for (var i = 0; i < validators.length; i++) {
+      var fallo = validators[i](ctx);
+      if (fallo) {
+        window.UNAChat.notify(fallo.texto);
+        var campo = fallo.campo === 'nombre' ? nombre : mensaje;
+        if (fallo.limpiar) {
+          campo.value = '';
+        }
+        campo.focus();
+        return fallo;
+      }
+    }
+    return null;
+  }
 
   // emite evento al servidor
   form.addEventListener('submit', function (evento) {
     evento.preventDefault();
+
+    if (validarEnvio({ nombre: nombre.value, mensaje: mensaje.value })) {
+      return;
+    }
+    window.UNAChat.clearNotice();
+
     var nombreTxt = nombre.value || "Anonimo";
     var mensajeTxt = mensaje.value;
 

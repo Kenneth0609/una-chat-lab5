@@ -110,6 +110,13 @@ describe('rutas HTTP (Supertest)', () => {
     expect(css.headers['content-type']).toMatch(/css/);
   });
 
+  test('entrega las reglas de envio (public/validators/*.js) en /validators.js', async () => {
+    const res = await request(app).get('/validators.js');
+    expect(res.status).toBe(200);
+    expect(res.headers['content-type']).toMatch(/javascript/);
+    expect(res.headers['content-security-policy']).toContain("script-src 'self'");
+  });
+
   test('sirve el cliente de Socket.IO sin depender de un CDN', async () => {
     // Socket.IO se adjunta al servidor HTTP (no a la app de Express): se prueba contra el servidor real
     const res = await request(urlServidor).get('/socket.io/socket.io.js');

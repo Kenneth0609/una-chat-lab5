@@ -11,6 +11,10 @@ form button { width: 10%; background: rgb(130, 224, 255);  border: none; padding
 #m {width: 69%; margin-right: 4px;}
 #nombre {width: 20%}
 
+/* aviso al visitante (solo se ve cuando tiene texto) */
+#aviso { position: fixed; bottom: 46px; left: 0; width: 100%; padding: 6px 10px; background: #fff3cd; color: #664d03; border-top: 1px solid #ffe69c; }
+#aviso:empty { display: none; }
+
 /* imagenes y videos que se muestran dentro del chat */
 .chat-media { display: block; margin-top: 4px; border: 0; max-width: 400px; max-height: 400px; }
 .chat-youtube { width: 560px; max-width: 100%; height: 315px; max-height: none; }

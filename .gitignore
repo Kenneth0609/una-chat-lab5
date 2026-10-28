@@ -10,3 +10,6 @@ node_modules/
 /blob-report/
 /playwright/.cache/
 /playwright/.auth/
+
+# harness (estado de ejecuciones, bloqueos y FoFo clonado)
+.harness/

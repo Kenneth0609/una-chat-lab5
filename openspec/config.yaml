@@ -1,0 +1,17 @@
+schema: spec-driven
+
+context: |
+  Project: UNA Chat, a Socket.IO chat (Node.js + Express). Frontend: plain JS in public/ and index.html (no framework, no jQuery).
+  Backend: server.js (Express + Socket.IO) and libs/unalib.js (validation and sanitization of messages).
+  Send rules for the visitor live one-per-file in public/validators/ (contract: harness/contracts/send-validator.md).
+  Test layers: unit (Mocha), integration (Jest + Supertest + socket.io-client), BDD (Cucumber/Gherkin + Playwright), E2E (Playwright).
+  Artifacts are written in English (SHALL / WHEN / THEN); texts shown to the visitor are in Spanish.
+  Security matters: never insert user text as HTML; keep the Content-Security-Policy (no inline scripts).
+rules:
+  specs:
+    - Use a capability name specific to the requirement (kebab-case) and only ADDED Requirements.
+    - Every acceptance clause needs at least one scenario with WHEN/THEN, including boundary cases.
+  design:
+    - Include a 'Testable interface' section with file path, function contract and exact visitor-facing texts.
+  tasks:
+    - Tasks are for the implementer only; they must not ask to change tests.

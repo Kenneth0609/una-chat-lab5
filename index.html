@@ -8,6 +8,8 @@
   </head>
   <body>
     <ul id="messages"></ul>
+    <!-- avisos para el visitante (los usan las reglas de public/validators/) -->
+    <div id="aviso" role="alert"></div>
     <form action="">
       <input id="nombre" autocomplete="off" placeholder="Username"/>
       <input id="m" autocomplete="off" placeholder="Escriba un mensaje" /><button>Send</button>
@@ -15,5 +17,7 @@
     <!-- el servidor de Socket.IO entrega su propio cliente: no se depende de CDNs externos -->
     <script src="/socket.io/socket.io.js"></script>
     <script src="/chat.js"></script>
+    <!-- reglas de envio: el servidor concatena public/validators/*.js -->
+    <script src="/validators.js"></script>
   </body>
 </html>

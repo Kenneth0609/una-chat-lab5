@@ -2,6 +2,7 @@
 // npm install para descargar los paquetes...
 
 // librerias
+var fs = require('fs');
 var path = require('path');
 var express = require('express');
 var validation = require('./libs/unalib');
@@ -30,6 +31,17 @@ app.use(function(req, res, next){
   res.setHeader('Content-Security-Policy', CSP);
   res.setHeader('X-Content-Type-Options', 'nosniff');
   next();
+});
+
+// reglas de envio del cliente: cada archivo de public/validators/ es una regla independiente;
+// se entregan concatenadas (orden alfabetico) para no tener que editar index.html al agregar una
+app.get('/validators.js', function(req, res){
+  var dir = path.join(__dirname, 'public', 'validators');
+  var archivos = fs.existsSync(dir) ? fs.readdirSync(dir).filter(function(f){ return /\.js$/.test(f); }).sort() : [];
+  var codigo = archivos.map(function(f){
+    return '// ' + f + '\n' + fs.readFileSync(path.join(dir, f), 'utf8');
+  }).join('\n');
+  res.type('application/javascript').send(codigo || '// sin reglas de envio\n');
 });
 
 // archivos estaticos del chat (chat.js y chat.css)
