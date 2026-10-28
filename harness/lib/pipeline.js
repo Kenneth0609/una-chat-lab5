@@ -94,7 +94,7 @@ async function faseSetup(ctx) {
   }
   fs.mkdirSync(ctx.evAbs, { recursive: true });
   fs.writeFileSync(path.join(ctx.evAbs, '00-requerimiento.md'), `# ${ctx.req}: ${ctx.info.title}\n\n${ctx.info.raw}\n`);
-  fs.writeFileSync(path.join(ctx.evAbs, 'REQUIREMENTS.md'), `# ${ctx.req}\n\n### ${ctx.req}: ${ctx.info.title}\nAcceptance: ${ctx.info.acceptance}\n`);
+  fs.writeFileSync(path.join(ctx.evAbs, 'REQUIREMENTS.md'), `# Requirements\n\n### ${ctx.req}: ${ctx.info.title}\nAcceptance: ${ctx.info.acceptance}\n`);
   const env = await fofo.setup(ctx.say);
   ctx.fofo = env;
   ctx.fofoCfg = fofo.escribirConfig(ctx.runDir, wt, ctx.req, { testCommand: `node "${RUN_SUITES}" --cwd "${wt}"`, baseRef: 'HEAD' });
