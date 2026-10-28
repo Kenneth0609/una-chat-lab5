@@ -170,7 +170,8 @@ function archivosDelJuez(ctx) {
 }
 
 // Comprobaciones del arbitro sobre lo que entrego el Juez. Devuelve la lista de problemas (vacia = rojo valido).
-async function validarRojo(ctx) {
+// revision=true: el Juez revisa las pruebas cuando YA existe la implementacion; no se exige rojo, solo que las pruebas corran.
+async function validarRojo(ctx, { revision = false } = {}) {
   const { wt, req } = ctx;
   const problemas = [];
   const arch = archivosDelJuez(ctx);
@@ -189,17 +190,18 @@ async function validarRojo(ctx) {
   const intent = await fofo.runGate(ctx.fofo, 'intent-gate', ['--policy', ctx.fofoCfg.policy, '--context', wt, '--changed', nuevos], wt);
   if (intent.code !== 0) problemas.push('FoFo intent-gate (calidad de las pruebas): ' + JSON.stringify(intent.verdict || intent.out).slice(0, 900));
 
-  const rojo = await correrSuites(ctx, { logSubdir: '02-rojo' });
-  ctx.rojo = rojo;
+  const rojo = await correrSuites(ctx, { logSubdir: revision ? '02b-revision-del-juez' : '02-rojo' });
+  if (!revision) ctx.rojo = rojo;
   for (const s of rojo.suites) {
-    if (s.status === 'passed') problemas.push(`La suite ${s.titulo} PASA, pero deberia estar en rojo: las pruebas nuevas no estan detectando la falta de la funcionalidad.`);
-    else if (s.causa === 'infraestructura') problemas.push(`La suite ${s.titulo} falla por un error de infraestructura (sintaxis, import, paso Gherkin indefinido o ambiguo), no por una asercion:\n${logsFallidos(ctx, { suites: [s] }, '02-rojo')}`);
+    if (s.status === 'passed') { if (!revision) problemas.push(`La suite ${s.titulo} PASA, pero deberia estar en rojo: las pruebas nuevas no estan detectando la falta de la funcionalidad.`); }
+    else if (s.causa === 'infraestructura') problemas.push(`La suite ${s.titulo} falla por un error de infraestructura (sintaxis, import, paso Gherkin indefinido o ambiguo), no por una asercion:\n${logsFallidos(ctx, { suites: [s] }, revision ? '02b-revision-del-juez' : '02-rojo')}`);
   }
   return { problemas };
 }
 
 async function faseJudge(ctx, { escalacion } = {}) {
   const { run, wt } = ctx;
+  const revision = !!escalacion;
   let retro = null;
   let resume = null;
   for (let intento = 1; intento <= cfg.maxJudgeAttempts; intento++) {
@@ -208,7 +210,26 @@ async function faseJudge(ctx, { escalacion } = {}) {
     if (resume) rol.task = `# Continuacion: tu entrega anterior tiene problemas\n\n${retro}\n\nCorrigelos y responde con el mismo bloque JSON.`;
     const r = await llamarAgente(ctx, rol, { resume });
     resume = r.sessionId;
-    const { problemas } = await validarRojo(ctx);
+    const { problemas } = await validarRojo(ctx, { revision });
+    if (!problemas.length && revision) {
+      // El Juez puede concluir que las pruebas estan bien: entonces no cambia nada y no se vuelve a bloquear.
+      const cambios = (await git.gitOut(wt, ['diff', '--name-only', run.data.testsCommit, '--', 'test', 'tests'])).split('\n').filter(Boolean);
+      const nuevos = (await git.gitOut(wt, ['ls-files', '--others', '--exclude-standard', '--', 'test', 'tests'])).split('\n').filter(Boolean);
+      if (!cambios.length && !nuevos.length) {
+        ctx.say('Revision del Juez: las pruebas son correctas y no se modificaron.');
+        run.data.judgeReviews = (run.data.judgeReviews || []).concat({ cambios: false, session: r.sessionId, motivo: String(escalacion).slice(0, 300) });
+        run.save();
+        return;
+      }
+      const lock = await fofo.runGate(ctx.fofo, 'test-lock', ['--write', '--policy', ctx.fofoCfg.policy, '--context', wt, '--changed', CHANGED_TESTS], wt);
+      if (lock.code !== 0) throw new Failure('test-lock --write (revision) fallo: ' + JSON.stringify(lock.verdict || lock.out).slice(0, 300));
+      fs.writeFileSync(path.join(ctx.evAbs, 'PROVENANCE.yaml'), `units:\n  - unit: ${ctx.req}\n    tests_by: judge-${r.sessionId}\n    code_by: author-${run.data.authorSessionId}\n`);
+      run.data.testsCommit = (await git.commitTodo(wt, `test(${ctx.req}): revision del Juez (sesion nueva) y nuevo bloqueo con test-lock`)) || run.data.testsCommit;
+      run.data.judgeReviews = (run.data.judgeReviews || []).concat({ cambios: true, session: r.sessionId, archivos: cambios.concat(nuevos) });
+      run.save();
+      ctx.say(`Revision del Juez: pruebas corregidas y bloqueadas de nuevo (${run.data.testsCommit.slice(0, 7)}).`);
+      return;
+    }
     if (!problemas.length) {
       // Fase 2 de FoFo: se confirma el rojo con el gate oficial y se bloquean las pruebas (test-lock)
       const rg = await fofo.runGate(ctx.fofo, 'redgreen-gate', ['--expect', 'red', '--policy', ctx.fofoCfg.policy, '--context', wt], wt, { env: { PORT: String(ctx.port) } });
