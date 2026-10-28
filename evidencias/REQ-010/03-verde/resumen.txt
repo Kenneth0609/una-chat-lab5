@@ -1,0 +1,5 @@
+=== RESUMEN ===
+OK   Unitarias (Mocha)                pasan=104 fallan=0 (0.3s)
+OK   Integracion (Jest + Supertest)   pasan=34 fallan=0 (1.9s)
+OK   BDD (Cucumber + Playwright)      pasan=6 fallan=0 (5.4s)
+OK   End-to-end (Playwright)          pasan=14 fallan=0 (11.6s)
