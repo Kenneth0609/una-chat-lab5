@@ -8,6 +8,10 @@ const { cfg } = require('./config');
 const { exec, which, conBloqueo } = require('./proc');
 const { git } = require('./git');
 
+// Rojo 'por la razon equivocada' (error de carga en vez de comportamiento que falta). Un modulo que aun no existe en
+// public/ o libs/ NO cuenta: ese es justamente el rojo esperado de una prueba escrita antes del codigo.
+const ROJO_EQUIVOCADO = [String.raw`SyntaxError`, String.raw`ImportError`, String.raw`ModuleNotFoundError`, String.raw`Cannot find module '(?![^']*(?:public|libs)[/\\])`, String.raw`No tests? (ran|found|collected)`, String.raw`collected 0 items`, String.raw`command not found`, String.raw`ReferenceError`, String.raw`Undefined\. Implement with the following snippet`, String.raw`Multiple step definitions match`];
+
 const SCRIPTS_REL = path.join('plugins', 'fofo', 'skills', 'sdlc', 'scripts');
 const fofoDir = () => path.join(cfg.vendorDir, 'agentic-sdlc');
 const scriptsDir = () => path.join(fofoDir(), SCRIPTS_REL);
@@ -48,7 +52,7 @@ function escribirConfig(runDir, wt, req, opciones) {
     gates: {
       'spec-lint': { spec_file: `${ev}/REQUIREMENTS.md`, id_pattern: 'REQ-\\d+', acceptance_label: 'Acceptance', accept_ears: true },
       'trace-gate': { spec_file: `${ev}/REQUIREMENTS.md`, id_pattern: 'REQ-\\d+', test_reqs: `${ev}/TEST-REQS.yaml`, test_glob: ['test/**/*', 'tests/**/*'] },
-      'redgreen-gate': { test_command: opciones.testCommand, timeout_seconds: 900 },
+      'redgreen-gate': { test_command: opciones.testCommand, timeout_seconds: 900, red_for_reason: ROJO_EQUIVOCADO },
       'intent-gate': { test_launchers: ['it', 'test', 'specify', 'Given', 'When', 'Then'], assertion_roots: ['should'], banned_mocks: [], allow_snapshot_only: false, fail_on: ['assertion-free', 'trivial'] },
       'secret-scan': { min_token_length: 16, allowlist: [], fail_on: ['high'] },
       'separation-gate': { manifest: `${ev}/PROVENANCE.yaml` },
