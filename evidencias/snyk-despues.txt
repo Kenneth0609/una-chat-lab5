@@ -1,0 +1,18 @@
+
+Testing C:\Users\Nano\Desktop\Paradigmas\Lab5\despues...
+
+Organization:      kenneth0609
+Package manager:   npm
+Target file:       package-lock.json
+Project name:      una-chat
+Open source:       no
+Project path:      C:\Users\Nano\Desktop\Paradigmas\Lab5\despues
+Licenses:          enabled
+
+✔ Tested 82 dependencies for known issues, no vulnerable paths found.
+
+Next steps:
+- Run `snyk monitor` to be notified about new related vulnerabilities.
+- Run `snyk test` as part of your CI/test.
+
+

@@ -1,0 +1,25 @@
+
+Testing C:\Users\Nano\Desktop\Paradigmas\Lab5\despues...
+
+Tested 417 dependencies for known issues, found 2 issues, 6 vulnerable paths.
+
+
+Issues with no direct upgrade or patch:
+  ✗ Prototype Pollution [Medium Severity][https://security.snyk.io/vuln/SNYK-JS-DEEPMERGE-19964053] in deepmerge@4.3.1
+    introduced by jest@30.5.2 > @jest/core@30.5.2 > jest-config@30.5.2 > deepmerge@4.3.1
+  No upgrade or patch available
+  ✗ Regular Expression Denial of Service (ReDoS) [High Severity][https://security.snyk.io/vuln/SNYK-JS-PICOMATCH-21248802] in picomatch@2.3.2
+    introduced by jest@30.5.2 > @jest/core@30.5.2 > @jest/console@30.5.2 > jest-message-util@30.5.1 > picomatch@4.0.7 and 4 other path(s)
+  No upgrade or patch available
+
+
+
+Organization:      kenneth0609
+Package manager:   npm
+Target file:       package-lock.json
+Project name:      una-chat
+Open source:       no
+Project path:      C:\Users\Nano\Desktop\Paradigmas\Lab5\despues
+Licenses:          enabled
+
+
