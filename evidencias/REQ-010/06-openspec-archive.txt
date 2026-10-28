@@ -1,0 +1,16 @@
+Task status: 0/4 tasks
+Warning: 4 incomplete task(s) found. Continuing due to --yes flag.
+
+Specs to update:
+  empty-message-validation: create
+Applying changes to openspec/specs/empty-message-validation/spec.md:
+  + 1 added
+Totals: + 1, ~ 0, - 0, → 0
+Specs updated successfully.
+Change 'req-010-empty-messages-are-not-published' archived as '2026-10-28-req-010-empty-messages-are-not-published'.
+
+--- openspec validate --specs --strict ---
+✓ spec/chat-messages
+✓ spec/empty-message-validation
+Totals: 2 passed, 0 failed (2 items)
+- Validating...
