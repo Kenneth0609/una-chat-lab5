@@ -40,7 +40,7 @@ describe('unalib', function(){
 
   describe('funcion is_valid_yt_video', function(){
 
-    it('deberia devolver true para http://image.com/image.jpg', function(){
+    it('deberia devolver true para https://www.youtube.com/watch?v=qYwlqx-JLok', function(){
 
       assert.equal(val.is_valid_yt_video('https://www.youtube.com/watch?v=qYwlqx-JLok'), true);
 

@@ -1,16 +1,43 @@
 
 // npm install para descargar los paquetes...
 
-// libreriuas
+// librerias
+var path = require('path');
+var express = require('express');
 var validation = require('./libs/unalib');
-var app = require('express')();
+var app = express();
 var http = require('http').Server(app);
 var io = require('socket.io')(http);
 var port = process.env.PORT || 3000;
 
+// Politica de seguridad de contenido (defensa en profundidad): aunque algun codigo lograra colarse
+// en un mensaje, el navegador no ejecutaria scripts en linea ni cargaria scripts de otros sitios.
+var CSP = [
+  "default-src 'self'",
+  "script-src 'self'",
+  "style-src 'self'",
+  "img-src http: https:",
+  "media-src http: https:",
+  "frame-src https://www.youtube.com",
+  "connect-src 'self' ws: wss:",
+  "object-src 'none'",
+  "base-uri 'none'",
+  "form-action 'self'",
+  "frame-ancestors 'none'"
+].join('; ');
+
+app.use(function(req, res, next){
+  res.setHeader('Content-Security-Policy', CSP);
+  res.setHeader('X-Content-Type-Options', 'nosniff');
+  next();
+});
+
+// archivos estaticos del chat (chat.js y chat.css)
+app.use(express.static(path.join(__dirname, 'public')));
+
 // root: presentar html
 app.get('/', function(req, res){
-  res.sendFile(__dirname + '/index.html');
+  res.sendFile(path.join(__dirname, 'index.html'));
 });
 
 // escuchar una conexion por socket
@@ -18,12 +45,18 @@ io.on('connection', function(socket){
   // si se escucha "chat message"
   socket.on('Evento-Mensaje-Server', function(msg){
 
-    msg =  validation.validateMessage(msg);
-    // volvemos a emitir el mismo mensaje
+    // la libreria valida y sanea el mensaje (script injection, URLs de imagenes y videos)
+    msg = validation.validateMessage(msg);
+    // volvemos a emitir el mensaje ya saneado
     io.emit('Evento-Mensaje-Server', msg);
   });
 });
 
-http.listen(port, function(){
-  console.log('listening on *:' + port);
-});
+// solo se abre el puerto cuando se ejecuta con "npm start" (las pruebas importan este modulo)
+if (require.main === module) {
+  http.listen(port, function(){
+    console.log('listening on *:' + port);
+  });
+}
+
+module.exports = { app: app, http: http, io: io, port: port };

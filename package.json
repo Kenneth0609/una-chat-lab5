@@ -1,11 +1,34 @@
 {
+  "name": "una-chat",
+  "version": "1.0.0",
+  "description": "UNA Chat (Socket.IO): Laboratorio 5 de Paradigmas de Programacion",
+  "private": true,
   "dependencies": {
     "express": "*",
-    "mocha": "^10.2.0",
     "socket.io": "*"
   },
   "scripts": {
     "start": "node server.js",
-    "test": "mocha"
+    "test": "mocha",
+    "test:unit": "mocha",
+    "test:integration": "jest tests/integration --runInBand --env=node",
+    "test:e2e": "playwright test --project=chromium",
+    "test:all": "npm test && npm run test:integration && npm run test:e2e"
+  },
+  "jest": {
+    "testEnvironment": "node",
+    "testMatch": [
+      "**/tests/integration/**/*.test.js"
+    ],
+    "testPathIgnorePatterns": [
+      "/node_modules/",
+      "/tests/e2e/"
+    ]
+  },
+  "devDependencies": {
+    "jest": "^30.5.2",
+    "mocha": "^10.2.0",
+    "socket.io-client": "^4.8.4",
+    "supertest": "^7.3.1"
   }
 }
