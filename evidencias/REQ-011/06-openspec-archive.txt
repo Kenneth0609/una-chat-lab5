@@ -1,0 +1,16 @@
+Task status: 0/7 tasks
+Warning: 7 incomplete task(s) found. Continuing due to --yes flag.
+
+Specs to update:
+  username-required-validation: create
+Applying changes to openspec/specs/username-required-validation/spec.md:
+  + 1 added
+Totals: + 1, ~ 0, - 0, → 0
+Specs updated successfully.
+Change 'req-011-messages-need-a-name' archived as '2026-10-28-req-011-messages-need-a-name'.
+
+--- openspec validate --specs --strict ---
+✓ spec/chat-messages
+✓ spec/username-required-validation
+Totals: 2 passed, 0 failed (2 items)
+- Validating...
