@@ -1,0 +1,152 @@
+
+
+  imagenes: URLs de imagen en el chat
+    is_valid_url_image: URLs permitidas
+      √ acepta http://image.com/image.jpg
+      √ acepta http://image.com/image.gif
+      √ acepta https://image.com/foto.png
+      √ acepta https://image.com/foto.jpeg
+      √ acepta https://image.com/foto.bmp
+      √ acepta https://image.com/foto.webp
+      √ acepta https://CDN.Example.com/Fotos/FOTO.JPG
+      √ acepta https://example.com/a/b/c/imagen-con_guiones.png
+      √ acepta https://example.com/imagen.png?w=300&h=200
+      √ acepta https://upload.wikimedia.org/wikipedia/commons/thumb/4/47/PNG_transparency_demonstration_1.png/280px-PNG_transparency_demonstration_1.png
+      √ acepta https://example.com/con-espacios-alrededor.png
+    is_valid_url_image: URLs rechazadas
+      √ rechaza sin extension de imagen
+      √ rechaza una pagina web
+      √ rechaza un ejecutable
+      √ rechaza doble extension peligrosa
+      √ rechaza protocolo javascript:
+      √ rechaza protocolo ftp:
+      √ rechaza protocolo file:
+      √ rechaza data URI
+      √ rechaza URL relativa al protocolo
+      √ rechaza sin protocolo
+      √ rechaza con espacios internos
+      √ rechaza con comillas (rompe el atributo src)
+      √ rechaza con menor que
+      √ rechaza con credenciales embebidas
+      √ rechaza texto normal
+      √ rechaza cadena vacia
+      √ rechaza valores que no son texto
+    getImageTag
+      √ genera una etiqueta <img> con la URL y sin manejadores de eventos
+      √ escapa cualquier caracter peligroso de la URL
+    validateMessage con URL de imagen
+      √ convierte la URL en una imagen mostrada en el chat
+      √ acepta la URL aunque tenga espacios alrededor
+      √ una URL que no es de imagen se muestra como texto
+
+  REQ-010: regla de envio para mensaje vacio o de solo espacios en blanco
+    √ REQ-010: rechaza un mensaje completamente vacio ("")
+    √ REQ-010: rechaza un mensaje que contiene solo espacios ("   ")
+    √ REQ-010: rechaza un mensaje que contiene solo tabs ("\t\t\t")
+    √ REQ-010: rechaza un mensaje con una mezcla de espacios y tabs ("\t \t")
+    √ REQ-010: NO rechaza un mensaje con espacios alrededor pero con contenido real ("  hola  ")
+    √ REQ-010: NO rechaza un mensaje normal sin espacios sobrantes ("hola")
+    √ REQ-010: cuando rechaza, siempre senala el campo "mensaje" (nunca "nombre") y pide limpiarlo
+
+  REQ-011: regla de envio "nombre obligatorio" (public/validators/nombre-obligatorio.js)
+    √ REQ-011: username vacio + mensaje real -> rechaza con el aviso exacto y limpiar=true sobre "nombre"
+    √ REQ-011: username solo con espacios ("   ") + mensaje real -> rechaza
+    √ REQ-011: username formado solo por tabs y saltos de linea + mensaje real -> rechaza
+    √ REQ-011: username con texto real rodeado de espacios ("  Ana  ") + mensaje real -> se acepta (null)
+    √ REQ-011: username vacio + mensaje vacio -> fuera del alcance de esta regla (null)
+    √ REQ-011: username vacio + mensaje solo con espacios -> fuera del alcance de esta regla (null)
+    √ REQ-011: username ausente (undefined) + mensaje real -> rechaza igual que username vacio
+
+  REQ-012: messages stay short (unitarias - regla message-length.js)
+    √ REQ-012: bloquea el envio de un mensaje de 281 caracteres devolviendo un rechazo sobre el campo "mensaje"
+    √ REQ-012: al bloquear un mensaje demasiado largo, conserva el texto escrito (limpiar: false)
+    √ REQ-012: al bloquear un mensaje demasiado largo, el texto del aviso dice que es demasiado largo
+    √ REQ-012: acepta un mensaje de exactamente 280 caracteres (no bloquea: devuelve null)
+    √ REQ-012: bloquea tambien un mensaje de 281 caracteres hecho solo de espacios (no se recorta antes de contar)
+    √ REQ-012: no bloquea un mensaje corto normal
+
+  seguridad: prevencion de inyeccion de scripts
+    mensaje con <script>
+      √ bloquea el script del laboratorio (paso 2) y no deja etiquetas en la salida
+      √ bloquea <script> con mayusculas y minusculas mezcladas
+      √ bloquea un <script> sin etiqueta de cierre
+      √ bloquea <script src="..."> externo
+    otras tecnicas de inyeccion
+      √ neutraliza <img src=x onerror=...>
+      √ neutraliza <svg onload=...>
+      √ neutraliza <iframe src="javascript:...">
+      √ un enlace javascript: se muestra solo como texto, nunca como imagen o video
+      √ no permite salirse del atributo src con comillas (http://x/a.jpg" onerror="...)
+      √ no acepta una imagen data: URI
+      √ elimina etiquetas inofensivas pero conserva el texto
+      √ escapa los caracteres especiales del texto normal
+    campos nombre y color
+      √ sanea el nombre de usuario
+      √ si el nombre queda vacio tras sanear, usa un nombre por defecto
+      √ rechaza un color que no sea hexadecimal (inyeccion en el atributo style)
+      √ conserva un color hexadecimal valido
+    entradas malformadas
+      √ un JSON invalido con script no se devuelve sin sanear
+      √ no lanza error con entradas que no son texto
+      √ tolera que "mensaje" no sea un string
+      √ tolera un JSON que no es un objeto
+      √ la salida siempre es JSON con las claves esperadas
+    alias en espanol
+      √ validarMensaje devuelve lo mismo que validateMessage
+
+  unalib
+    funcion is_valid_phone
+      √ deberia devolver true para 8297-8547
+      √ deberia devolver false para 8297p-8547
+    funcion is_valid_url_image
+      √ deberia devolver true para http://image.com/image.jpg
+      √ deberia devolver true para http://image.com/image.gif
+    funcion is_valid_yt_video
+      √ deberia devolver true para https://www.youtube.com/watch?v=qYwlqx-JLok
+
+  videos: URLs de video en el chat
+    is_valid_url_video: archivos de video directos
+      √ acepta https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.webm
+      √ acepta https://example.com/clip.mp4
+      √ acepta http://example.com/clip.ogg
+      √ acepta https://example.com/clip.ogv
+      √ acepta https://example.com/clip.m4v
+      √ acepta https://EXAMPLE.com/CLIP.MP4
+      √ acepta https://example.com/clip.mp4?token=abc123
+      √ rechaza una imagen
+      √ rechaza una pagina web
+      √ rechaza un ejecutable
+      √ rechaza protocolo javascript:
+      √ rechaza data URI
+      √ rechaza con comillas
+      √ rechaza con espacios internos
+      √ rechaza texto normal
+      √ rechaza valores que no son texto
+    is_valid_yt_video: videos de YouTube
+      √ acepta https://www.youtube.com/watch?v=qYwlqx-JLok
+      √ acepta http://www.youtube.com/watch?v=qYwlqx-JLok
+      √ acepta https://youtube.com/watch?v=qYwlqx-JLok
+      √ acepta https://youtu.be/qYwlqx-JLok
+      √ acepta https://www.youtube.com/embed/qYwlqx-JLok
+      √ acepta https://www.youtube.com/watch?v=qYwlqx-JLok&t=30s
+      √ acepta https://www.youtube.com/watch?feature=share&v=qYwlqx-JLok
+      √ rechaza identificador demasiado corto
+      √ rechaza sin identificador
+      √ rechaza dominio falso al inicio
+      √ rechaza dominio falso en el parametro
+      √ rechaza comillas en el identificador
+      √ rechaza otra red de video
+      √ rechaza valores que no son texto
+    getYTVideoId
+      √ extrae el identificador de las distintas formas de URL
+      √ devuelve null (sin lanzar error) si no hay identificador
+    reproductores insertados en el chat
+      √ getVideoTag genera un <video> con controles y sin manejadores de eventos
+      √ getEmbeddedCode genera el iframe de YouTube con el identificador correcto
+      √ validateMessage convierte un archivo de video en un reproductor <video>
+      √ validateMessage convierte un enlace de YouTube en un reproductor incrustado
+      √ una URL de video no permitida se muestra solo como texto
+
+
+  117 passing (35ms)
+

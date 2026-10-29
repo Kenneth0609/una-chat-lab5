@@ -1,0 +1,12 @@
+{
+  "verdict": "fail",
+  "summary": "El revisor no devolvio un veredicto valido",
+  "findings": [
+    {
+      "severity": "med",
+      "route": "code",
+      "location": "-",
+      "detail": "You've hit your session limit · resets 7:40pm (America/Costa_Rica)"
+    }
+  ]
+}

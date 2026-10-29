@@ -1,0 +1,12 @@
+{
+  "verdict": "pass",
+  "summary": "La implementacion agrega solo public/validators/message-length.js reutilizando el punto de extension UNAChat.registerSendValidator ya existente (chat.js, server.js /validators.js sin tocar); los textos, campo y limpiar:false cumplen exactamente la aceptacion de REQ-012 y las pruebas (unit/integration/e2e/bdd) verifican comportamiento real end-to-end, no atajos.",
+  "findings": [
+    {
+      "severity": "low",
+      "route": "code",
+      "location": "openspec/changes/req-012-messages-stay-short/design.md:14-18",
+      "detail": "La decision de no validar la longitud en el servidor es un riesgo de seguridad defensiva (un cliente que evite el JS podria enviar mensajes largos), pero esta documentada explicitamente como fuera de alcance y es coherente con la arquitectura existente de validadores solo-cliente; no es una trampa de esta implementacion."
+    }
+  ]
+}

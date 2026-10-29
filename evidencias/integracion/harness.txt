@@ -1,0 +1,25 @@
+
+> una-chat@1.0.0 test:harness
+> node --test "harness/test/**/*.test.js"
+
+✔ parseRequirement lee id, titulo y criterio de aceptacion (formato FoFo) (0.9429ms)
+✔ parseRequirement rechaza un requerimiento sin Acceptance (0.4921ms)
+✔ slug normaliza el titulo para ramas y nombres de cambio (0.1867ms)
+✔ allocatePort es estable por requerimiento y evita puertos usados u ocupados (21.894ms)
+✔ el estado se guarda de forma atomica y se puede reanudar (9.3481ms)
+✔ extraerJson toma el ultimo bloque json de la respuesta del agente (0.3445ms)
+✔ conBloqueo serializa a dos ejecuciones que compiten por el mismo recurso (626.232ms)
+✔ el aislamiento de roles queda en los permisos: el Juez no lee el codigo y el Autor no edita pruebas (0.9883ms)
+✔ reanudar una revision fallida ejecuta archivo e informe y limpia errores antiguos (80.2931ms)
+✔ una interrupcion del revisor impide cerrar y archivar el requerimiento (79.8192ms)
+✔ un resultado sin JSON de revision no cuenta como aprobacion (20.7133ms)
+✔ un veredicto fail sin hallazgos altos tampoco aprueba el cambio (18.9401ms)
+✔ una revision explicita y valida permite continuar (20.6715ms)
+ℹ tests 13
+ℹ suites 0
+ℹ pass 13
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 757.8336

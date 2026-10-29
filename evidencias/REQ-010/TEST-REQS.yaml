@@ -1,0 +1,5 @@
+REQ-010:
+  - intent: "Un mensaje completamente vacio (\"\") al pulsar Send no se agrega al transcript, el campo de mensaje queda vacio y el aviso (role=alert) le dice al visitante que escriba algo"
+  - intent: "Un mensaje que contiene solo espacios (por ejemplo \"   \") al pulsar Send no se agrega al transcript, el campo de mensaje se vacia y el aviso (role=alert) le dice al visitante que escriba algo"
+  - intent: "Un mensaje que contiene solo tabs o una mezcla de espacios y tabs (por ejemplo \"\\t \\t\") al pulsar Send no se agrega al transcript, el campo de mensaje se vacia y el aviso (role=alert) le dice al visitante que escriba algo"
+  - intent: "Un mensaje con espacios al inicio/fin pero con al menos un caracter que no es espacio en blanco (por ejemplo \"  hola  \") NO es rechazado por esta regla: el envio se publica en el transcript"

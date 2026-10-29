@@ -23,7 +23,7 @@ async function main() {
     if (!req || !/^REQ-\d+$/.test(req)) throw new Error('Uso: harness run REQ-NNN [--text "..."] [--restart] [--no-pr]');
     const { runPipeline } = require('../lib/pipeline');
     const r = await runPipeline({ req, text: valor('--text'), restart: flag('--restart'), noPr: flag('--no-pr') });
-    process.exit(r.outcome === 'ready' ? 0 : r.outcome === 'blocked' ? 3 : 1);
+    process.exit(r.status === 'done' && r.outcome === 'ready' ? 0 : r.outcome === 'blocked' ? 3 : 1);
   } else if (cmd === 'status') {
     if (!fs.existsSync(cfg.runsDir)) return console.log('Sin ejecuciones.');
     for (const d of fs.readdirSync(cfg.runsDir)) {

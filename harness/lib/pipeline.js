@@ -331,15 +331,30 @@ async function faseVerify(ctx) {
 // ---------------------------------------------------------------------------------------------------------------------
 async function faseReview(ctx) {
   const { run, wt } = ctx;
+  function registrarRevision(resultado) {
+    const v = resultado.json;
+    const valida = resultado.ok && v && ['pass', 'fail'].includes(v.verdict)
+      && typeof v.summary === 'string' && v.summary.trim()
+      && Array.isArray(v.findings) && v.findings.every((f) => f
+        && ['low', 'med', 'high'].includes(f.severity)
+        && ['code', 'tests'].includes(f.route)
+        && typeof f.location === 'string' && typeof f.detail === 'string');
+    const evidencia = valida ? v : {
+      verdict: 'fail', summary: 'El revisor no completo una revision valida',
+      findings: [], error: String(resultado.text || 'Respuesta incompleta').slice(0, 300),
+    };
+    fs.writeFileSync(path.join(ctx.evAbs, '05-revision.json'), JSON.stringify(evidencia, null, 2));
+    run.data.review = evidencia;
+    run.save();
+    if (!valida) throw new Failure('El revisor no completo una revision valida; no se puede archivar ni publicar como listo.');
+    return v;
+  }
   const r = await llamarAgente(ctx, prompts.review(ctx, { baseCommit: run.data.testsCommit }));
-  let v = r.json;
-  if (!v || !['pass', 'fail'].includes(v.verdict)) v = { verdict: 'fail', summary: 'El revisor no devolvio un veredicto valido', findings: [{ severity: 'med', route: 'code', location: '-', detail: r.text.slice(0, 300) }] };
-  fs.writeFileSync(path.join(ctx.evAbs, '05-revision.json'), JSON.stringify(v, null, 2));
-  run.data.review = v;
-  run.save();
+  const v = registrarRevision(r);
   ctx.say(`Revision de ojos frescos: ${v.verdict} - ${v.summary}`);
   const altos = (v.findings || []).filter((f) => f.severity === 'high');
-  if (v.verdict === 'pass' || !altos.length) return;
+  if (v.verdict === 'pass' && !altos.length) return;
+  if (!altos.length) throw new Blocked('La revision no aprobo el cambio y no indico hallazgos que pueda corregir el Autor.');
   const detalle = altos.map((f) => `- [${f.severity}] ${f.location}: ${f.detail}`).join('\n');
   if (altos.some((f) => f.route === 'tests')) {
     await faseJudge(ctx, { escalacion: `El revisor encontro problemas en las pruebas:\n${detalle}` });
@@ -349,12 +364,9 @@ async function faseReview(ctx) {
   }
   await faseVerify(ctx);
   const r2 = await llamarAgente(ctx, prompts.review(ctx, { baseCommit: run.data.testsCommit }));
-  const v2 = r2.json || { verdict: 'fail', summary: 'sin veredicto', findings: [] };
-  fs.writeFileSync(path.join(ctx.evAbs, '05-revision.json'), JSON.stringify(v2, null, 2));
-  run.data.review = v2;
-  run.save();
-  if (v2.verdict !== 'pass' && (v2.findings || []).some((f) => f.severity === 'high')) {
-    throw new Blocked('La revision de ojos frescos sigue reportando hallazgos altos despues de la correccion.');
+  const v2 = registrarRevision(r2);
+  if (v2.verdict !== 'pass' || v2.findings.some((f) => f.severity === 'high')) {
+    throw new Blocked('La revision de ojos frescos no aprobo el cambio despues de la correccion.');
   }
 }
 
@@ -441,6 +453,12 @@ async function runPipeline(opts) {
   }
   const ctx = crearContexto(run, info);
   if (run.data.status === 'done' && !opts.restart) { ctx.say('La ejecucion ya termino. Use --restart para repetirla.'); return run.data; }
+  // Un intento fallido puede haber publicado un borrador y omitido el archivo.
+  // Al reanudar se conserva el trabajo verificado, pero se vuelve a cerrar con evidencia actual.
+  if (run.phase('archive').status === 'skipped') run.data.phases.archive = { status: 'pending' };
+  for (const nombre of ['evidence', 'pr']) run.data.phases[nombre] = { status: 'pending' };
+  delete run.data.blockReason;
+  delete run.data.publishError;
   run.set('status', 'running');
   ctx.say(`Inicio. Rama ${ctx.branch} | puerto ${ctx.port} | estado ${path.relative(cfg.repo, runDir)}`);
 

@@ -1,0 +1,19 @@
+{
+  "algo": "sha256",
+  "files": {
+    "test/imagenes.test.js": "9dd19bf200ec24ca6880283e36234b60b45fca9de8c903b563847302cb67308f",
+    "test/req-010.unit.test.js": "8f7b79b9b3b04a21565378145287f111ae59599a26ab4b840699ce96c3ba37b1",
+    "test/seguridad.test.js": "51f2b9c30e6497bd0b77ca957c6d3639e73b884fba89775a3782bb44cdbca7eb",
+    "test/test.js": "4607b94bd3511d63ccd9f4afdc52384be2489942922a19fb2af59f4196e2d2cb",
+    "test/videos.test.js": "e19e7050e4a3c79a55668d39338fdaa42b7927a513809f3cb5478c08009432ab",
+    "tests/bdd/features/mensajes-base.feature": "b24eb4661ce8524f6bff8db58ea7613af98e60d9a81155cef4600ed8fc672554",
+    "tests/bdd/features/req-010.feature": "417594d2cf731f55d1d73499ad44feb59b10510843816288f93034ee15fe3f36",
+    "tests/bdd/steps/req-010.steps.js": "c5e0fba0d79ed8cb4e24ae721195204772347eed7484e2a1f09f0743f6ab8100",
+    "tests/bdd/support/common.steps.js": "c448327156023f8a8c36d30ed67bbf2428ee3f41b186036885247509779fb974",
+    "tests/bdd/support/world.js": "57749f728d9701f1842788ccb823d1ca9b7ca543afad80e7052526936b07f8e4",
+    "tests/e2e/chat.spec.js": "ad398241004dba11ef2ebfa28ddda20e1595e4fdb274bb2d57fd61e6d5e900bb",
+    "tests/e2e/req-010.spec.js": "cc700adef6c4f704f77f296675d493165d1ed5833f7dbbba8d1e776b36660885",
+    "tests/integration/chat.test.js": "624d443e984d8e44d51de15eb2b688ad232c098ca7b1282b9565dfadb8b9dd75",
+    "tests/integration/req-010.test.js": "b14a602a6882886793dfcbc2703bf17c415950825a0f7c05ef717d2fc9522545"
+  }
+}

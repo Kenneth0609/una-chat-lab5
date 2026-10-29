@@ -1,0 +1,4 @@
+# Requirements
+
+### REQ-012: Messages stay short
+Acceptance: WHEN a visitor activates Send with a message longer than 280 characters THEN the system SHALL NOT add that message to the transcript, SHALL keep the message text in the field, and SHALL tell the visitor the message is too long.

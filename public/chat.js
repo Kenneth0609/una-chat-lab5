@@ -24,15 +24,18 @@
   // public/validators/ (el servidor los entrega juntos en /validators.js), asi varias
   // personas o agentes pueden agregar reglas en paralelo sin tocar este archivo.
   //
-  //   UNAChat.registerSendValidator(function (ctx) { ... })
+  //   UNAChat.registerSendValidator(function (ctx) { ... }, prioridadOpcional)
   //     ctx     = { nombre: <valor del campo Username>, mensaje: <valor del campo de mensaje> }
   //     retorna = null si el envio es valido, o
   //               { campo: 'nombre' | 'mensaje', texto: '<aviso para el visitante>', limpiar: true | false }
   //               (limpiar: vaciar el campo indicado; false: conservar lo escrito)
-  //   Los validadores corren en orden alfabetico del nombre de archivo; gana el primero que falla.
+  //   Menor prioridad numerica corre primero; los empates conservan el orden de carga alfabetico.
   var validators = [];
   window.UNAChat = {
-    registerSendValidator: function (fn) { validators.push(fn); },
+    registerSendValidator: function (fn, prioridad) {
+      validators.push({ validate: fn, prioridad: Number.isFinite(prioridad) ? prioridad : 0 });
+      validators.sort(function (a, b) { return a.prioridad - b.prioridad; });
+    },
     notify: function (texto) { aviso.textContent = texto; },
     clearNotice: function () { aviso.textContent = ''; }
   };
@@ -40,7 +43,7 @@
   // devuelve el primer fallo de validacion (o null) y lo aplica en pantalla
   function validarEnvio(ctx) {
     for (var i = 0; i < validators.length; i++) {
-      var fallo = validators[i](ctx);
+      var fallo = validators[i].validate(ctx);
       if (fallo) {
         window.UNAChat.notify(fallo.texto);
         var campo = fallo.campo === 'nombre' ? nombre : mensaje;

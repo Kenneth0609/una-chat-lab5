@@ -51,6 +51,13 @@ o si se agotan los reintentos.
 `npm run harness -- run REQ-NNN` **reanuda** en la fase donde quedó; `--restart` la repite desde cero. Reintentos: especificación ×2, Juez ×3, Autor ×4,
 rondas de lazo (Autor/Juez) ×2.
 
+La revisión exige un proceso exitoso y un veredicto JSON válido `pass` sin hallazgos altos. Una interrupción o respuesta
+incompleta detiene el cierre. Al reanudar un intento fallido se repiten archivo pendiente, informe y publicación,
+sin omitirlos por el estado de un borrador anterior. La CLI devuelve error si la publicación falla.
+
+La integración local final usa prioridades opcionales para las reglas: el límite de longitud tiene prioridad -10;
+las otras reglas usan 0 y los empates conservan el orden alfabético. Ver `../DEMO-CLASE.md` para el ejemplo preparado.
+
 ## Estructura
 
 ```

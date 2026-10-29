@@ -1,0 +1,230 @@
+{
+  "comparison": "Contenido original con LF o CRLF, sin reemplazar locks FoFo",
+  "requirements": [
+    {
+      "req": "REQ-010",
+      "files": [
+        {
+          "file": "test/imagenes.test.js",
+          "exact": false,
+          "unchanged": true
+        },
+        {
+          "file": "test/req-010.unit.test.js",
+          "exact": false,
+          "unchanged": true
+        },
+        {
+          "file": "test/seguridad.test.js",
+          "exact": false,
+          "unchanged": true
+        },
+        {
+          "file": "test/test.js",
+          "exact": true,
+          "unchanged": true
+        },
+        {
+          "file": "test/videos.test.js",
+          "exact": false,
+          "unchanged": true
+        },
+        {
+          "file": "tests/bdd/features/mensajes-base.feature",
+          "exact": false,
+          "unchanged": true
+        },
+        {
+          "file": "tests/bdd/features/req-010.feature",
+          "exact": false,
+          "unchanged": true
+        },
+        {
+          "file": "tests/bdd/steps/req-010.steps.js",
+          "exact": false,
+          "unchanged": true
+        },
+        {
+          "file": "tests/bdd/support/common.steps.js",
+          "exact": false,
+          "unchanged": true
+        },
+        {
+          "file": "tests/bdd/support/world.js",
+          "exact": false,
+          "unchanged": true
+        },
+        {
+          "file": "tests/e2e/chat.spec.js",
+          "exact": false,
+          "unchanged": true
+        },
+        {
+          "file": "tests/e2e/req-010.spec.js",
+          "exact": false,
+          "unchanged": true
+        },
+        {
+          "file": "tests/integration/chat.test.js",
+          "exact": false,
+          "unchanged": true
+        },
+        {
+          "file": "tests/integration/req-010.test.js",
+          "exact": false,
+          "unchanged": true
+        }
+      ]
+    },
+    {
+      "req": "REQ-011",
+      "files": [
+        {
+          "file": "test/imagenes.test.js",
+          "exact": false,
+          "unchanged": true
+        },
+        {
+          "file": "test/req-011.unit.test.js",
+          "exact": false,
+          "unchanged": true
+        },
+        {
+          "file": "test/seguridad.test.js",
+          "exact": false,
+          "unchanged": true
+        },
+        {
+          "file": "test/test.js",
+          "exact": true,
+          "unchanged": true
+        },
+        {
+          "file": "test/videos.test.js",
+          "exact": false,
+          "unchanged": true
+        },
+        {
+          "file": "tests/bdd/features/mensajes-base.feature",
+          "exact": false,
+          "unchanged": true
+        },
+        {
+          "file": "tests/bdd/features/req-011.feature",
+          "exact": false,
+          "unchanged": true
+        },
+        {
+          "file": "tests/bdd/steps/req-011.steps.js",
+          "exact": false,
+          "unchanged": true
+        },
+        {
+          "file": "tests/bdd/support/common.steps.js",
+          "exact": false,
+          "unchanged": true
+        },
+        {
+          "file": "tests/bdd/support/world.js",
+          "exact": false,
+          "unchanged": true
+        },
+        {
+          "file": "tests/e2e/chat.spec.js",
+          "exact": false,
+          "unchanged": true
+        },
+        {
+          "file": "tests/e2e/req-011.spec.js",
+          "exact": false,
+          "unchanged": true
+        },
+        {
+          "file": "tests/integration/chat.test.js",
+          "exact": false,
+          "unchanged": true
+        },
+        {
+          "file": "tests/integration/req-011.test.js",
+          "exact": false,
+          "unchanged": true
+        }
+      ]
+    },
+    {
+      "req": "REQ-012",
+      "files": [
+        {
+          "file": "test/imagenes.test.js",
+          "exact": false,
+          "unchanged": true
+        },
+        {
+          "file": "test/req-012.unit.test.js",
+          "exact": false,
+          "unchanged": true
+        },
+        {
+          "file": "test/seguridad.test.js",
+          "exact": false,
+          "unchanged": true
+        },
+        {
+          "file": "test/test.js",
+          "exact": true,
+          "unchanged": true
+        },
+        {
+          "file": "test/videos.test.js",
+          "exact": false,
+          "unchanged": true
+        },
+        {
+          "file": "tests/bdd/features/mensajes-base.feature",
+          "exact": false,
+          "unchanged": true
+        },
+        {
+          "file": "tests/bdd/features/req-012.feature",
+          "exact": false,
+          "unchanged": true
+        },
+        {
+          "file": "tests/bdd/steps/req-012.steps.js",
+          "exact": false,
+          "unchanged": true
+        },
+        {
+          "file": "tests/bdd/support/common.steps.js",
+          "exact": false,
+          "unchanged": true
+        },
+        {
+          "file": "tests/bdd/support/world.js",
+          "exact": false,
+          "unchanged": true
+        },
+        {
+          "file": "tests/e2e/chat.spec.js",
+          "exact": false,
+          "unchanged": true
+        },
+        {
+          "file": "tests/e2e/req-012.spec.js",
+          "exact": false,
+          "unchanged": true
+        },
+        {
+          "file": "tests/integration/chat.test.js",
+          "exact": false,
+          "unchanged": true
+        },
+        {
+          "file": "tests/integration/req-012.test.js",
+          "exact": false,
+          "unchanged": true
+        }
+      ]
+    }
+  ]
+}
