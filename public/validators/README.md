@@ -29,4 +29,6 @@ ni `public/chat.js`.
 - Si una regla devuelve un fallo, el mensaje **no se emite** al servidor (no entra en la conversacion),
   se muestra `texto` en el aviso (`<div id="aviso" role="alert">`) y el foco vuelve a `campo`.
 - `limpiar: true` vacia el campo indicado; `limpiar: false` conserva lo que el visitante escribio.
-- Gana la primera regla (por orden alfabetico del archivo) que falle.
+- `registerSendValidator(fn, prioridad)` acepta una prioridad numerica opcional (0 por defecto).
+  Gana la primera regla que falle: menor prioridad primero; los empates mantienen el orden alfabetico del archivo.
+  El limite de longitud usa -10 para conservar textos de mas de 280 caracteres, incluso si solo contienen espacios.

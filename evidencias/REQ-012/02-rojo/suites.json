@@ -1,0 +1,49 @@
+{
+  "ok": false,
+  "suites": [
+    {
+      "suite": "unit",
+      "titulo": "Unitarias (Mocha)",
+      "status": "failed",
+      "exitCode": 1,
+      "durationMs": 259,
+      "passed": 97,
+      "failed": 1,
+      "causa": "asercion",
+      "log": "C:\\Users\\Nano\\Desktop\\Paradigmas\\Lab5\\despues-worktrees\\REQ-012\\evidencias\\REQ-012\\02-rojo\\unit.log"
+    },
+    {
+      "suite": "integration",
+      "titulo": "Integracion (Jest + Supertest)",
+      "status": "failed",
+      "exitCode": 1,
+      "durationMs": 1997,
+      "passed": 29,
+      "failed": 2,
+      "causa": "asercion",
+      "log": "C:\\Users\\Nano\\Desktop\\Paradigmas\\Lab5\\despues-worktrees\\REQ-012\\evidencias\\REQ-012\\02-rojo\\integration.log"
+    },
+    {
+      "suite": "bdd",
+      "titulo": "BDD (Cucumber + Playwright)",
+      "status": "failed",
+      "exitCode": 1,
+      "durationMs": 20555,
+      "passed": 3,
+      "failed": 4,
+      "causa": "asercion",
+      "log": "C:\\Users\\Nano\\Desktop\\Paradigmas\\Lab5\\despues-worktrees\\REQ-012\\evidencias\\REQ-012\\02-rojo\\bdd.log"
+    },
+    {
+      "suite": "e2e",
+      "titulo": "End-to-end (Playwright)",
+      "status": "failed",
+      "exitCode": 1,
+      "durationMs": 28061,
+      "passed": 12,
+      "failed": 3,
+      "causa": "asercion",
+      "log": "C:\\Users\\Nano\\Desktop\\Paradigmas\\Lab5\\despues-worktrees\\REQ-012\\evidencias\\REQ-012\\02-rojo\\e2e.log"
+    }
+  ]
+}

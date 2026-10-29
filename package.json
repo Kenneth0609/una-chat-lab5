@@ -16,6 +16,7 @@
     "test:e2e": "playwright test --project=chromium",
     "test:all": "node harness/scripts/run-suites.js",
     "harness": "node harness/bin/sdlc.js",
+    "demo": "node harness/scripts/demo.js",
     "test:harness": "node --test \"harness/test/**/*.test.js\""
   },
   "jest": {

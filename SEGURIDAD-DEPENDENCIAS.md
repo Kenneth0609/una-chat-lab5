@@ -1,5 +1,14 @@
 # Escaneo de vulnerabilidades en dependencias (paso 11)
 
+Verificación repetida al finalizar (28 de octubre de 2026): `npm audit` mantiene 0 críticas, 0 altas y 5 bajas.
+`snyk test --dev` analizó 486 dependencias y mantiene el hallazgo alto de picomatch y el medio de deepmerge,
+sin actualización ni parche disponible. No se considera cumplida la eliminación total de hallazgos altos en desarrollo.
+Salida nueva: [`evidencias/snyk-final-dev.json`](evidencias/snyk-final-dev.json).
+El escaneo final de producción sí pasó: 82 dependencias, ninguna ruta vulnerable
+([`evidencias/snyk-final-produccion.json`](evidencias/snyk-final-produccion.json)).
+Las pruebas conjuntas finales aprueban 117 unitarias, 42 de integración, 16 escenarios BDD y 27 E2E.
+El detalle siguiente conserva los resultados de la reparación original de la Parte 1.
+
 Herramienta: **Snyk CLI** (`snyk test`, con la cuenta autenticada mediante `snyk auth`).
 La reparación la hizo un agente de IA (Claude Code) y después se volvieron a ejecutar las tres suites de pruebas.
 

@@ -1,0 +1,29 @@
+[
+  {
+    "id": "Q1",
+    "pregunta": "Cuando se rechaza el envio por falta de nombre, ¿el mensaje que la persona ya escribio debe quedar en el campo de mensaje, o tambien debe borrarse?",
+    "que_dice_el_requerimiento": "El texto solo indica que el campo de nombre de usuario debe quedar vacio; no menciona el campo de mensaje.",
+    "que_falta_definir": "Si el campo de mensaje debe conservarse tal cual lo escribio la persona, o vaciarse junto con el nombre.",
+    "como_afecta": "Si se debe vaciar tambien el mensaje, la persona tendria que volver a escribirlo despues de poner su nombre; si se conserva, solo necesita escribir el nombre y reenviar.",
+    "supuesto_adoptado": "Se conserva el texto del mensaje tal como lo escribio la persona; solo se vacia el campo de nombre.",
+    "bloqueante": false
+  },
+  {
+    "id": "Q2",
+    "pregunta": "¿Cual debe ser el texto exacto del aviso que le dice a la persona que escriba un nombre?",
+    "que_dice_el_requerimiento": "Solo pide que el sistema 'le diga a la persona que escriba un nombre', sin dar el texto exacto.",
+    "que_falta_definir": "La redaccion precisa en espanol del mensaje mostrado.",
+    "como_afecta": "Cambia unicamente el texto visible para la persona, no el comportamiento del envio.",
+    "supuesto_adoptado": "Se usa el texto: \"Escriba un nombre para enviar el mensaje.\"",
+    "bloqueante": false
+  },
+  {
+    "id": "Q3",
+    "pregunta": "Si tanto el nombre como el mensaje estan vacios o solo tienen espacios, ¿que aviso debe ver la persona: el de falta de nombre, el de mensaje vacio, o ambos?",
+    "que_dice_el_requerimiento": "La clausula de REQ-011 solo aplica cuando hay 'un mensaje real'; no cubre el caso en que ambos campos estan vacios.",
+    "que_falta_definir": "Cual aviso debe ganar cuando ambos campos fallan al mismo tiempo.",
+    "como_afecta": "No cambia si el mensaje se envia (en ningun caso se envia), solo cual texto de aviso ve la persona primero.",
+    "supuesto_adoptado": "Esta regla no se activa en ese caso (no es 'un mensaje real'); el aviso de mensaje vacio (otra capacidad, REQ-010) es responsable de ese caso.",
+    "bloqueante": false
+  }
+]

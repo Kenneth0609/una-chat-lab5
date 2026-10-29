@@ -29,5 +29,8 @@ Comportamiento que aplica `public/chat.js` cuando una regla devuelve un fallo:
 2. `texto` se escribe en el aviso (`<div id="aviso" role="alert">`).
 3. `limpiar: true` deja vacio el campo `campo`; `limpiar: false` conserva lo escrito.
 4. El foco vuelve a `campo`.
-5. Si varias reglas fallan a la vez, gana la primera (orden alfabetico del archivo).
+5. `registerSendValidator(fn, prioridad)` admite una prioridad numerica opcional (por defecto 0).
+   Se ejecutan primero las prioridades menores; los empates conservan el orden alfabetico de carga.
+   La longitud usa -10: si un mensaje tiene mas de 280 caracteres, se conserva y se avisa que es demasiado largo,
+   incluso cuando solo contiene espacios o tambien falta el nombre (decision del usuario, 2026-10-28).
 6. Un envio valido borra el aviso, emite el mensaje y vacia el campo de mensaje.

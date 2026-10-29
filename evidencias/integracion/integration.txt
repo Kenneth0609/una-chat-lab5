@@ -1,0 +1,60 @@
+PASS tests/integration/req-011.test.js
+  REQ-011: GET /validators.js sirve la regla de nombre obligatorio
+    √ REQ-011: username vacio + mensaje real -> alguna regla registrada rechaza con el aviso de escribir un nombre (2 ms)
+    √ REQ-011: username solo con espacios + mensaje real -> se rechaza con el mismo aviso (1 ms)
+    √ REQ-011: username solo con tabs y saltos de linea + mensaje real -> se rechaza con el mismo aviso (1 ms)
+    √ REQ-011: username con texto real rodeado de espacios -> ninguna regla registrada lo rechaza
+    √ REQ-011: username y mensaje vacios -> ninguna regla produce el aviso de "escriba un nombre"
+
+PASS tests/integration/chat.test.js
+  rutas HTTP (Supertest)
+    √ GET / responde 200 con la pagina del chat (6 ms)
+    √ la pagina no carga scripts de terceros ni tiene scripts en linea (4 ms)
+    √ envia cabeceras de seguridad (CSP y nosniff) (3 ms)
+    √ sirve el JavaScript y el CSS del chat (6 ms)
+    √ entrega las reglas de envio (public/validators/*.js) en /validators.js (3 ms)
+    √ sirve el cliente de Socket.IO sin depender de un CDN (9 ms)
+    √ los mensajes no se reciben por HTTP: POST / responde 404 (3 ms)
+    √ una ruta inexistente responde 404 (3 ms)
+  evento Socket.IO "Evento-Mensaje-Server" + una-lib
+    √ el backend llama a validateMessage de una-lib y retransmite exactamente lo que devuelve (12 ms)
+    √ si una-lib devolviera otro contenido, ese es el que llega al cliente (el backend depende de ella) (5 ms)
+    √ URL de imagen valida: el backend la acepta y la convierte en <img> (4 ms)
+    √ URL de video valida (archivo): el backend la acepta y la convierte en <video controls> (3 ms)
+    √ URL de video valida (YouTube): el backend la convierte en un reproductor incrustado (3 ms)
+    √ script: la validacion lo rechaza y devuelve contenido saneado (3 ms)
+    √ URL no permitida (un ejecutable): se muestra solo como texto escapado (4 ms)
+    √ URL no permitida (un enlace javascript:): se muestra solo como texto escapado (3 ms)
+    √ URL no permitida (una pagina web): se muestra solo como texto escapado (3 ms)
+    √ URL no permitida (un video en formato no permitido): se muestra solo como texto escapado (3 ms)
+    √ URL no permitida (una imagen que intenta salirse del atributo src): se muestra solo como texto escapado (3 ms)
+    √ URL no permitida (una imagen data: URI): se muestra solo como texto escapado (2 ms)
+    √ otras inyecciones (<img src=x onerror=alert(1)>) no llegan como HTML (2 ms)
+    √ otras inyecciones (<svg onload=alert(1)>) no llegan como HTML (3 ms)
+    √ otras inyecciones (<iframe src="javascript:alert(1)"></iframe>) no llegan como HTML (2 ms)
+    √ otras inyecciones (<ScRiPt>alert(1)</sCrIpT>) no llegan como HTML (2 ms)
+    √ sanea el nombre y el color de usuario de punta a punta (3 ms)
+    √ un mensaje que no es JSON se trata como texto saneado (3 ms)
+    √ un payload que no es texto no tumba el servidor y se responde con un mensaje vacio (2 ms)
+    √ el mensaje saneado se retransmite a todos los clientes conectados (3 ms)
+
+PASS tests/integration/req-010.test.js
+  REQ-010: integracion - GET /validators.js expone la regla de mensaje vacio
+    √ REQ-010: GET /validators.js responde 200 con JavaScript (4 ms)
+    √ REQ-010: un mensaje completamente vacio es rechazado por alguna regla registrada, con el aviso esperado (4 ms)
+    √ REQ-010: un mensaje con solo espacios es rechazado igual que uno vacio (3 ms)
+    √ REQ-010: un mensaje con solo tabs es rechazado igual que uno vacio (3 ms)
+    √ REQ-010: un mensaje con mezcla de espacios y tabs es rechazado igual que uno vacio (4 ms)
+    √ REQ-010: un mensaje con contenido real (con espacios alrededor) no es rechazado por ninguna regla (6 ms)
+
+PASS tests/integration/req-012.test.js
+  REQ-012: messages stay short (integracion, GET /validators.js)
+    √ REQ-012: un mensaje de 281 caracteres es rechazado por alguna regla registrada (no se emitiria) (11 ms)
+    √ REQ-012: un mensaje de exactamente 280 caracteres no es rechazado por ninguna regla (3 ms)
+    √ REQ-012: un mensaje de 281 espacios tambien es rechazado (no se recorta antes de contar) (3 ms)
+
+Test Suites: 4 passed, 4 total
+Tests:       42 passed, 42 total
+Snapshots:   0 total
+Time:        1.038 s, estimated 2 s
+Ran all test suites matching tests/integration.

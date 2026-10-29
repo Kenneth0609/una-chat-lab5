@@ -1,0 +1,45 @@
+{
+  "ok": true,
+  "suites": [
+    {
+      "suite": "unit",
+      "titulo": "Unitarias (Mocha)",
+      "status": "passed",
+      "exitCode": 0,
+      "durationMs": 204,
+      "passed": 117,
+      "failed": 0,
+      "log": "evidencias\\integracion\\unit.log"
+    },
+    {
+      "suite": "integration",
+      "titulo": "Integracion (Jest + Supertest)",
+      "status": "passed",
+      "exitCode": 0,
+      "durationMs": 1489,
+      "passed": 42,
+      "failed": 0,
+      "log": "evidencias\\integracion\\integration.log"
+    },
+    {
+      "suite": "bdd",
+      "titulo": "BDD (Cucumber + Playwright)",
+      "status": "passed",
+      "exitCode": 0,
+      "durationMs": 10451,
+      "passed": 16,
+      "failed": 0,
+      "log": "evidencias\\integracion\\bdd.log"
+    },
+    {
+      "suite": "e2e",
+      "titulo": "End-to-end (Playwright)",
+      "status": "passed",
+      "exitCode": 0,
+      "durationMs": 15415,
+      "passed": 27,
+      "failed": 0,
+      "log": "evidencias\\integracion\\e2e.log"
+    }
+  ]
+}
