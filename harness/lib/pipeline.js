@@ -224,7 +224,7 @@ async function faseJudge(ctx, { escalacion } = {}) {
       const lock = await fofo.runGate(ctx.fofo, 'test-lock', ['--write', '--policy', ctx.fofoCfg.policy, '--context', wt, '--changed', CHANGED_TESTS], wt);
       if (lock.code !== 0) throw new Failure('test-lock --write (revision) fallo: ' + JSON.stringify(lock.verdict || lock.out).slice(0, 300));
       fs.writeFileSync(path.join(ctx.evAbs, 'PROVENANCE.yaml'), `units:\n  - unit: ${ctx.req}\n    tests_by: judge-${r.sessionId}\n    code_by: author-${run.data.authorSessionId}\n`);
-      run.data.testsCommit = (await git.commitTodo(wt, `test(${ctx.req}): revision del Juez (sesion nueva) y nuevo bloqueo con test-lock`)) || run.data.testsCommit;
+      run.data.testsCommit = (await git.commitRutas(wt, `test(${ctx.req}): revision del Juez (sesion nueva) y nuevo bloqueo con test-lock`, ['test', 'tests', `evidencias/${ctx.req}`])) || run.data.testsCommit;
       run.data.judgeReviews = (run.data.judgeReviews || []).concat({ cambios: true, session: r.sessionId, archivos: cambios.concat(nuevos) });
       run.save();
       ctx.say(`Revision del Juez: pruebas corregidas y bloqueadas de nuevo (${run.data.testsCommit.slice(0, 7)}).`);

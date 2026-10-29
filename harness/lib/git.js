@@ -37,6 +37,15 @@ async function commitTodo(cwd, mensaje) {
   return gitOut(cwd, ['rev-parse', 'HEAD']);
 }
 
+// Como commitTodo, pero solo con las rutas indicadas (por ejemplo, para no arrastrar el trabajo en curso del Autor)
+async function commitRutas(cwd, mensaje, rutas) {
+  await git(cwd, ['add', '-A', '--', ...rutas]);
+  const estado = await gitOut(cwd, ['diff', '--cached', '--name-only']);
+  if (!estado) return null;
+  await git(cwd, ['-c', 'core.autocrlf=false', 'commit', '-q', '-m', mensaje + '\n\nCo-Authored-By: Claude Sonnet 5.5 <noreply@anthropic.com>']);
+  return gitOut(cwd, ['rev-parse', 'HEAD']);
+}
+
 async function push(cwd, branch) {
   return conBloqueo(cfg.locksDir, 'git', () => git(cwd, ['push', '-u', cfg.remote, branch, '--force-with-lease']));
 }
@@ -47,4 +56,4 @@ async function gh(cwd, args, opts = {}) {
   return r;
 }
 
-module.exports = { git, gitOut, crearWorktree, commitTodo, push, gh };
+module.exports = { git, gitOut, crearWorktree, commitTodo, commitRutas, push, gh };
