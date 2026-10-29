@@ -44,11 +44,15 @@ test('REQ-011: username con espacios alrededor de texto real se acepta y el mens
 
   const mensaje = page.getByRole('listitem').filter({ hasText: 'Mensaje con nombre valido REQ-011' });
   await expect(mensaje).toBeVisible();
-  await expect(page.getByRole('alert')).not.toHaveText(AVISO_ESPERADO);
+  // No se usa getByRole('alert') aqui: el contrato (harness/contracts/ui-contract.md) dice que
+  // #aviso esta vacio y oculto mientras no hay aviso, lo que lo saca del arbol de accesibilidad
+  // en Chromium y getByRole('alert') no encuentra nada -> not.toHaveText expiraria por timeout
+  // aunque la ausencia de aviso sea el comportamiento correcto. El locator por id evita eso.
+  await expect(page.locator('#aviso')).not.toHaveText(AVISO_ESPERADO);
 });
 
 test('REQ-011: username y mensaje vacios no muestran el aviso de "escriba un nombre"', async ({ page }) => {
   await enviarMensaje(page, '', '   ');
 
-  await expect(page.getByRole('alert')).not.toHaveText(AVISO_ESPERADO);
+  await expect(page.locator('#aviso')).not.toHaveText(AVISO_ESPERADO);
 });

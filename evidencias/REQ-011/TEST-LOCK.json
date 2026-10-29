@@ -12,7 +12,7 @@
     "tests/bdd/support/common.steps.js": "c448327156023f8a8c36d30ed67bbf2428ee3f41b186036885247509779fb974",
     "tests/bdd/support/world.js": "57749f728d9701f1842788ccb823d1ca9b7ca543afad80e7052526936b07f8e4",
     "tests/e2e/chat.spec.js": "ad398241004dba11ef2ebfa28ddda20e1595e4fdb274bb2d57fd61e6d5e900bb",
-    "tests/e2e/req-011.spec.js": "e9958d3f637008ef8933eed20b393670ef56d518d9454d11c300f4b08d3af3ff",
+    "tests/e2e/req-011.spec.js": "7e9989cbdc8483e8102059f03b9e4f3d159fcffa567170bb4827685644f8e521",
     "tests/integration/chat.test.js": "624d443e984d8e44d51de15eb2b688ad232c098ca7b1282b9565dfadb8b9dd75",
     "tests/integration/req-011.test.js": "145f93b7320f35f70aa90bcadc232d5ded2c4d17f30485e76eec995f69c5bd0b"
   }
