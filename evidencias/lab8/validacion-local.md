@@ -24,7 +24,7 @@ Se verificaron acceso anónimo denegado, autor derivado de la sesión, origen de
 
 Las capturas automatizadas se generan en test-results/ con los nombres sign-in.png, sign-in-mobile.png y authenticated-chat.png. Fueron revisadas visualmente; muestran el proveedor de pruebas y no se presentan como evidencia de Google real.
 
-El entorno privado .env se configuró con autorización de Kenneth y está excluido de Git. Se añadieron en Auth0 las URLs del puerto 3210 conservando las 3000. El servidor real funciona en localhost:3210 y rechaza /api/me sin sesión con 401. Para el despliegue en Vercel faltan la difusión y revocación compartidas entre instancias. La implementación actual cubre un proceso local.
+El entorno privado .env se configuró con autorización de Kenneth y está excluido de Git. Se añadieron en Auth0 las URLs del puerto 3210 conservando las 3000. El servidor real funciona en localhost:3210 y rechaza /api/me sin sesión con 401. El entorno alojado se documenta por separado en la [validación en Vercel](validacion-vercel.md).
 
 ## Evidencia real con Google y Auth0
 

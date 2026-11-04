@@ -1,13 +1,14 @@
 'use strict';
 const { test, before, after } = require('node:test');
 const assert = require('node:assert/strict');
+const { once } = require('node:events');
 const request = require('supertest');
 const { io: connect } = require('socket.io-client');
 const { startFixture } = require('../support/auth-fixture');
-const { createChatServer } = require('../../server');
+const { createChatServer, SOCKET_PATH } = require('../../server');
 const { readAuthConfig } = require('../../libs/auth');
 let fixture;
-before(async () => { fixture = await startFixture(); fixture.io.engine.on('connection_error', (error) => { fixture.behavior.socketError = { code: error.code, message: error.message, context: error.context?.message }; }); });
+before(async () => { fixture = await startFixture({ redisURL: process.env.LAB8_TEST_REDIS_URL }); fixture.io.engine.on('connection_error', (error) => { fixture.behavior.socketError = { code: error.code, message: error.message, context: error.context?.message }; }); });
 after(async () => { await fixture?.close(); });
 
 async function signIn(agent, transform) {
@@ -20,8 +21,8 @@ async function signIn(agent, transform) {
   if (transform) target = transform(target);
   return agent.get(target.pathname + target.search);
 }
-function socketConnection(cookie, origin) {
-  const socket = connect(fixture.baseURL, { transports: ['websocket'], reconnection: false, forceNew: true, timeout: 3000,
+function socketConnection(cookie, origin, baseURL = fixture.baseURL) {
+  const socket = connect(baseURL, { path: SOCKET_PATH, addTrailingSlash: false, transports: ['websocket'], reconnection: false, forceNew: true, timeout: 3000,
     extraHeaders: { ...(cookie ? { Cookie: cookie } : {}), ...(origin ? { Origin: origin } : {}) } });
   return new Promise((resolve, reject) => { socket.once('connect', () => resolve(socket)); socket.once('connect_error', (error) => { socket.close(); error.message += ' ' + JSON.stringify(fixture.behavior.socketError); reject(error); }); });
 }
@@ -111,4 +112,34 @@ test('expired sessions disconnect readers and publishers; tampered cookies grant
     await agent.get('/api/me').expect(401);
     await assert.rejects(socketConnection(cookie), /websocket error/);
   } finally { socket.close(); }
+});
+
+test('Redis broadcasts and revokes a session across two servers', { skip: !process.env.LAB8_TEST_REDIS_URL }, async () => {
+  const other = createChatServer({ env: fixture.env, sessionMiddleware: fixture.sessionMiddleware });
+  await new Promise((resolve) => other.http.listen(0, '127.0.0.1', resolve));
+  const otherURL = 'http://127.0.0.1:' + other.http.address().port;
+  const sockets = [];
+  try {
+    const callback = await signIn(request.agent(fixture.app));
+    assert.equal(callback.status, 302);
+    const cookie = callback.headers['set-cookie'].filter((value) => !value.includes('Max-Age=0'))
+      .map((value) => value.split(';')[0]).join('; ');
+    const sender = await socketConnection(cookie);
+    sockets.push(sender);
+    const recipient = await socketConnection(cookie, fixture.baseURL, otherURL);
+    sockets.push(recipient);
+    const delivered = once(recipient, 'Evento-Mensaje-Server', { signal: AbortSignal.timeout(3000) });
+    sender.emit('Evento-Mensaje-Server', JSON.stringify({ nombre: 'Impostor', mensaje: 'Entre instancias', color: '#112233' }));
+    const [message] = await delivered;
+    assert.equal(JSON.parse(message).nombre, 'Ana');
+    assert.equal(JSON.parse(message).mensaje, 'Entre instancias');
+    const closed = sockets.map((socket) => once(socket, 'disconnect', { signal: AbortSignal.timeout(3000) }));
+    await request(otherURL).get('/auth/logout').set('Cookie', cookie).expect(302);
+    await Promise.all(closed);
+    await request(fixture.baseURL).get('/api/me').set('Cookie', cookie).expect(401);
+    await assert.rejects(socketConnection(cookie), /websocket error/);
+  } finally {
+    for (const socket of sockets) socket.close();
+    await new Promise((resolve) => other.io.close(resolve));
+  }
 });

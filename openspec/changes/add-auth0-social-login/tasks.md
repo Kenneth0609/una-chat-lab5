@@ -12,6 +12,6 @@
 
 ## 3. Hosted rollout
 
-- [ ] 3.1 Configure a shared realtime broadcast and logout-revocation mechanism for multiple Vercel instances and verify cross-instance messages.
-- [ ] 3.2 Configure the exact Vercel domain and Auth0 hosted URLs with human authorization, deploy and verify successful/cancelled login, chat protection and logout on the deployed URL.
-- [ ] 3.3 Record deployment URL and real local/hosted evidence in the delivery documentation.
+- [x] 3.1 Configure a shared realtime broadcast and logout-revocation mechanism for multiple Vercel instances and verify cross-instance messages.
+- [x] 3.2 Configure the exact Vercel domain and Auth0 hosted URLs with human authorization, deploy and verify successful/cancelled login, chat protection and logout on the deployed URL.
+- [x] 3.3 Record deployment URL and real local/hosted evidence in the delivery documentation.

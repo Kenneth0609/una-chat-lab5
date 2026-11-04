@@ -1,6 +1,6 @@
 (function () {
 
-  var socket = io({ transports: ['websocket'], autoConnect: false });
+  var socket = io({ path: '/api/chat/socket.io', addTrailingSlash: false, transports: ['websocket'], autoConnect: false });
   var colorHexTxt = "";
 
   // genera colores aleatorios en hexadeximal
@@ -48,7 +48,10 @@
     enviar.disabled = true;
     fetch('/api/me', { cache: 'no-store' }).then(function (response) {
       if (response.status === 401) requireLogin();
-      else aviso.textContent = 'Se perdió la conexión. Estamos intentando reconectar.';
+      else {
+        aviso.textContent = 'Se perdió la conexión. Estamos intentando reconectar.';
+        if (!socket.active) setTimeout(function () { socket.connect(); }, 3000);
+      }
     }).catch(function () { aviso.textContent = 'Se perdió la conexión. Estamos intentando reconectar.'; });
   });
 

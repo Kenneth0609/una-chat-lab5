@@ -2,7 +2,7 @@
 
 ## Laboratorio 8 y autenticación social
 
-El chat requiere una sesión de Auth0. El inicio de sesión se realiza con Google en una **Regular Web Application**; la sesión se conserva en una cookie cifrada y HttpOnly. El servidor protege la página, `/api/me`, las reglas de envío y las conexiones Socket.IO. El autor de un mensaje proviene de la sesión, aunque el cliente intente enviar otro nombre. Las sesiones locales duran como máximo una hora; logout revoca la sesión y desconecta sus sockets en el proceso actual.
+El chat requiere una sesión de Auth0. El inicio de sesión se realiza con Google en una **Regular Web Application**; la sesión se conserva en una cookie cifrada y HttpOnly. El servidor protege la página, `/api/me`, las reglas de envío y las conexiones Socket.IO. El autor de un mensaje proviene de la sesión, aunque el cliente intente enviar otro nombre. Las sesiones duran como máximo una hora. Al cerrar sesión, Redis propaga la revocación a todas las instancias de Vercel. En local, Redis es opcional y la revocación se aplica en el proceso actual.
 
 ### Preparar Auth0
 
@@ -30,6 +30,7 @@ Requiere Node.js 24. Copiar `.env.example` a `.env` y completar las variables en
 | `AUTH0_CONNECTION` | `google-oauth2` por defecto |
 | `APP_BASE_URL` | Origen exacto de la aplicación, por ejemplo `http://localhost:3000` |
 | `PORT` | Puerto local, 3000 por defecto |
+| `REDIS_URL` | Conexión Redis TCP. Es opcional en local y obligatoria en Vercel. Usar TLS (`rediss://`) para el servicio alojado |
 
 Para generar el secreto de sesión se puede usar `node -e "console.log(require('node:crypto').randomBytes(32).toString('hex'))"` y copiar el resultado únicamente al archivo privado. No usar valores de ejemplo como secretos reales.
 
@@ -54,18 +55,17 @@ npm run test:e2e
 
 `npm run test:verify` ejecuta esas cinco suites sin invocar el flujo del harness. Playwright y Cucumber necesitan Chromium: `npx playwright install chromium`. Las pruebas de navegador levantan su propio servidor y proveedor OIDC. Si el puerto 3000 ya está ocupado, usar otro puerto en `PORT`; el proveedor de pruebas usa el puerto siguiente. En PowerShell: `$env:PORT='3210'` antes de ejecutar las suites. No ejecutar simultáneamente BDD y E2E sobre los mismos puertos.
 
-Las pruebas con el proveedor local no sustituyen la comprobación del login social real. El ciclo real Google → UNA Chat → mensaje autenticado → logout se verificó en el puerto 3210; sus capturas y resultados están en [evidencias/lab8/validacion-local.md](evidencias/lab8/validacion-local.md). El despliegue de Vercel todavía no está verificado.
+El ciclo real Google → UNA Chat → mensaje autenticado → cierre de sesión se verificó en el puerto 3210. Los resultados se describen en la [validación local](evidencias/lab8/validacion-local.md).
 
 ### Preparar el despliegue de Vercel
 
-El despliegue está pendiente. Antes de publicarlo:
+La versión del laboratorio está en [UNA Chat en Vercel](https://una-chat-lab8.vercel.app/). Las pruebas de la versión publicada se describen en la [validación en Vercel](evidencias/lab8/validacion-vercel.md).
 
-1. Configurar un mecanismo compartido de difusión de mensajes y revocación de sesiones entre instancias. La difusión y revocación actuales son locales a un proceso; no bastan para múltiples instancias de Vercel.
-2. Añadir un punto de entrada que exporte el servidor HTTP con el WebSocket y configurar las rutas del despliegue. El cliente ya utiliza transporte `websocket` directo, como requiere la documentación actual de Vercel.
-3. Configurar las variables en el proyecto Vercel. `APP_BASE_URL` debe ser el origen HTTPS exacto del despliegue. Usar secretos propios del entorno y no publicarlos en HTML, JavaScript ni README.
-4. Añadir en Auth0 `https://DOMINIO/auth/callback` a callbacks y `https://DOMINIO` a logout y orígenes permitidos. Sustituir DOMINIO por el dominio real; conservar las URLs locales para desarrollo.
-5. Revisar las credenciales del proveedor Google: las development keys de Auth0 son para pruebas y pueden exigir credenciales propias antes de producción.
-6. Con aprobación humana, desplegar y comprobar desde dos sesiones de navegador el login, la identidad, los mensajes, la cancelación y logout. Registrar la URL real y las evidencias; no marcar esta etapa completa antes de verificarla.
+1. Vincular este repositorio al proyecto Vercel con `vercel link` y conectar una base Upstash for Redis al entorno Production. La integración configura `REDIS_URL`.
+2. Configurar las variables de Auth0 de la tabla anterior en Production y usar un secreto de sesión propio del despliegue. `APP_BASE_URL` debe coincidir con el origen HTTPS exacto de la aplicación. Vercel asigna el puerto.
+3. Añadir en Auth0 `https://DOMINIO/auth/callback` a callbacks y `https://DOMINIO` a logout y orígenes permitidos. Sustituir DOMINIO por el dominio real y conservar las URLs locales. Las claves de desarrollo de Google de Auth0 son para pruebas; usa credenciales de Google propias si se requiere un entorno de producción fuera del laboratorio.
+4. Ejecutar `vercel build --prod` y `vercel deploy --prebuilt --prod`. El punto de entrada `api/chat.js` exporta el servidor HTTP y `vercel.json` dirige las rutas de autenticación y WebSocket a esa función.
+5. Comprobar el inicio de sesión, el envío de mensajes y el cierre de sesión en la URL pública. Para probar Redis antes de desplegar, iniciar una base Redis local y ejecutar `npm run test:auth` con `LAB8_TEST_REDIS_URL` configurada. La prueba abre dos servidores y verifica mensajes y revocación entre ellos.
 
 Referencias oficiales: [SDK de Auth0 para Express](https://github.com/auth0/auth0-express/tree/main/packages/auth0-express), [WebSockets y Socket.IO en Vercel](https://vercel.com/docs/functions/websockets).
 

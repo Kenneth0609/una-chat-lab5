@@ -13,7 +13,7 @@ async function freePort() {
   return port;
 }
 
-async function startFixture({ port = 0, providerPort = 0 } = {}) {
+async function startFixture({ port = 0, providerPort = 0, redisURL } = {}) {
   const { generateKeyPair, exportJWK, SignJWT } = require('jose');
   const { createAuth0 } = require('@auth0/auth0-express');
   const { privateKey, publicKey } = await generateKeyPair('RS256');
@@ -98,9 +98,10 @@ async function startFixture({ port = 0, providerPort = 0 } = {}) {
     };
     next();
   });
+  if (redisURL) env.REDIS_URL = redisURL;
   const chat = createChatServer({ env, sessionMiddleware: router });
   await new Promise((resolve) => chat.http.listen(appPort, resolve));
-  return { ...chat, provider, providerURL, baseURL, env, behavior, issuer: ISSUER,
+  return { ...chat, provider, providerURL, baseURL, env, behavior, issuer: ISSUER, sessionMiddleware: router,
     close: async () => {
       await new Promise((resolve) => chat.io.close(resolve));
       await new Promise((resolve) => providerHttp.close(resolve));

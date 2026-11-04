@@ -4,24 +4,50 @@ const path = require('node:path');
 const express = require('express');
 const validation = require('./libs/unalib');
 const { readAuthConfig, identityFromSession, loginPage, SESSION_SECONDS } = require('./libs/auth');
+const SOCKET_PATH = '/api/chat/socket.io';
+const chatPage = fs.readFileSync(path.join(__dirname, 'index.html'), 'utf8');
 
 function createChatServer({ env = process.env, sessionMiddleware } = {}) {
   const config = readAuthConfig(env);
   const app = express();
   const http = require('node:http').createServer(app);
-  const io = new (require('socket.io').Server)(http, { transports: ['websocket'], maxHttpBufferSize: 65536 });
+  const io = new (require('socket.io').Server)(http, {
+    path: SOCKET_PATH, addTrailingSlash: false, transports: ['websocket'], maxHttpBufferSize: 65536
+  });
   const port = Number(env.PORT || 3000);
   const revoked = new Map();
   const sessions = express();
   app.disable('x-powered-by');
   sessions.disable('x-powered-by');
+  if (env.VERCEL && config && !env.REDIS_URL) throw new Error('Redis es obligatorio para UNA Chat en Vercel.');
+  const shared = config && env.REDIS_URL
+    ? require('./libs/chat-redis').createRedisChat(env.REDIS_URL, config.appBaseUrl, {
+      onMessage: broadcast,
+      onRevoke: markRevoked,
+      onDisconnect() {
+        for (const socket of io.sockets.sockets.values()) socket.conn.close();
+      }
+    }) : null;
+  if (shared) http.on('close', () => shared.close());
+
   function isActive(identity) { return identity && identity.expiresAt > Date.now() && !revoked.has(identity.key); }
-  function revoke(identity) {
+  async function checkActive(identity) {
+    return isActive(identity) && (!shared || !(await shared.isRevoked(identity.key))) && isActive(identity);
+  }
+  function disconnectSession(socket) {
+    socket.emit('auth-required');
+    socket.disconnect(true);
+  }
+  function markRevoked(key, expiresAt) {
     for (const [key, expiration] of revoked) if (expiration <= Date.now()) revoked.delete(key);
-    if (!identity) return;
-    revoked.set(identity.key, identity.expiresAt);
+    revoked.set(key, expiresAt);
     for (const socket of io.sockets.sockets.values()) {
-      if (socket.data.identity?.key === identity.key) { socket.emit('auth-required'); socket.disconnect(true); }
+      if (socket.data.identity?.key === key) disconnectSession(socket);
+    }
+  }
+  function broadcast(message) {
+    for (const recipient of io.sockets.sockets.values()) {
+      if (isActive(recipient.data.identity)) recipient.emit('Evento-Mensaje-Server', message);
     }
   }
   function signIn(res, status = 200, message = '') {
@@ -42,21 +68,29 @@ function createChatServer({ env = process.env, sessionMiddleware } = {}) {
   });
   if (sessionMiddleware) sessions.use(sessionMiddleware);
   else if (config) {
-    const { createAuth0 } = require('@auth0/auth0-express');
-    sessions.use(createAuth0({
-      domain: config.domain, clientId: config.clientId, clientSecret: config.clientSecret,
-      sessionSecret: config.sessionSecret, appBaseUrl: config.appBaseUrl, mountRoutes: false,
-      sessionConfiguration: { rolling: false, absoluteDuration: SESSION_SECONDS, inactivityDuration: SESSION_SECONDS,
-        cookie: { secure: config.secure, sameSite: 'lax', path: '/', httpOnly: true } }
-    }));
+    let authMiddleware;
+    sessions.use(async (req, res, next) => {
+      authMiddleware ??= import('@auth0/auth0-express').then(({ createAuth0 }) => createAuth0({
+        domain: config.domain, clientId: config.clientId, clientSecret: config.clientSecret,
+        sessionSecret: config.sessionSecret, appBaseUrl: config.appBaseUrl, mountRoutes: false,
+        sessionConfiguration: { rolling: false, absoluteDuration: SESSION_SECONDS, inactivityDuration: SESSION_SECONDS,
+          cookie: { secure: config.secure, sameSite: 'lax', path: '/', httpOnly: true } }
+      }));
+      const middleware = await authMiddleware;
+      return middleware(req, res, next);
+    });
   }
   sessions.use(async (req, res, next) => {
     try {
       const session = await req.auth0?.client.getSession({ request: req, response: res });
       const identity = identityFromSession(session);
-      req.chatIdentity = isActive(identity) ? identity : null;
+      req.chatIdentity = (await checkActive(identity)) ? identity : null;
       next();
-    } catch { req.chatIdentity = null; next(); }
+    } catch (error) {
+      req.chatIdentity = null;
+      if (shared) return next(error);
+      next();
+    }
   });
   app.use(sessions);
   app.get('/auth/login', async (req, res) => {
@@ -76,8 +110,12 @@ function createChatServer({ env = process.env, sessionMiddleware } = {}) {
   });
   app.get('/auth/logout', async (req, res) => {
     if (!config) return signIn(res, 503);
-    revoke(req.chatIdentity);
     try {
+      const identity = req.chatIdentity;
+      if (identity) {
+        if (shared) await shared.revoke(identity);
+        markRevoked(identity.key, identity.expiresAt);
+      }
       const url = await req.auth0.client.logout({ returnTo: config.appBaseUrl });
       res.redirect(url.href);
     } catch { signIn(res, 502, 'No se pudo cerrar sesión. Vuelve a intentarlo.'); }
@@ -89,13 +127,13 @@ function createChatServer({ env = process.env, sessionMiddleware } = {}) {
   app.get('/validators.js', (req, res) => {
     if (!isActive(req.chatIdentity)) return res.sendStatus(401);
     const dir = path.join(__dirname, 'public', 'validators');
-    const files = fs.readdirSync(dir).filter((file) => /\.js$/.test(file)).sort();
+    const files = fs.existsSync(dir) ? fs.readdirSync(dir).filter((file) => /\.js$/.test(file)).sort() : [];
     res.type('application/javascript').send(files.map((file) => fs.readFileSync(path.join(dir, file), 'utf8')).join('\n') || '// sin reglas de envio\n');
   });
   app.use(express.static(path.join(__dirname, 'public')));
   app.get('/', (req, res) => {
     if (!isActive(req.chatIdentity)) return signIn(res, config ? 200 : 503);
-    res.sendFile(path.join(__dirname, 'index.html'));
+    res.send(chatPage);
   });
   io.engine.use((req, res, next) => {
     if (!config || (req.headers.origin && req.headers.origin !== config.appBaseUrl)) return next(new Error('authentication_required'));
@@ -109,25 +147,31 @@ function createChatServer({ env = process.env, sessionMiddleware } = {}) {
       next();
     });
   });
-  io.use((socket, next) => {
-    if (!isActive(socket.request.chatIdentity)) return next(new Error('authentication_required'));
-    socket.data.identity = socket.request.chatIdentity;
-    next();
+  io.use(async (socket, next) => {
+    try {
+      if (shared) await shared.listen();
+      const identity = socket.request.chatIdentity;
+      if (!(await checkActive(identity))) return next(new Error('authentication_required'));
+      socket.data.identity = identity;
+      next();
+    } catch { next(new Error('connection_unavailable')); }
   });
   io.on('connection', (socket) => {
     const identity = socket.data.identity;
-    const expiration = setTimeout(() => { socket.emit('auth-required'); socket.disconnect(true); }, Math.max(0, identity.expiresAt - Date.now()));
+    if (!isActive(identity)) return disconnectSession(socket);
+    const expiration = setTimeout(() => disconnectSession(socket), Math.max(0, identity.expiresAt - Date.now()));
     expiration.unref();
     socket.on('disconnect', () => clearTimeout(expiration));
-    socket.on('Evento-Mensaje-Server', (message) => {
-      if (!isActive(identity)) { socket.emit('auth-required'); socket.disconnect(true); return; }
+    socket.on('Evento-Mensaje-Server', async (message) => {
+      if (!isActive(identity)) return disconnectSession(socket);
       let data;
       try { data = JSON.parse(message); } catch { data = { mensaje: typeof message === 'string' ? message : '' }; }
       if (!data || typeof data !== 'object' || Array.isArray(data)) data = { mensaje: typeof data === 'string' ? data : '' };
       const sanitized = validation.validateMessage(JSON.stringify({ ...data, nombre: identity.profile.name }));
-      for (const recipient of io.sockets.sockets.values()) {
-        if (isActive(recipient.data.identity)) recipient.emit('Evento-Mensaje-Server', sanitized);
-      }
+      if (!shared) return broadcast(sanitized);
+      try {
+        if (!(await shared.publish(identity, sanitized))) disconnectSession(socket);
+      } catch { socket.conn.close(); }
     });
   });
   app.use((error, req, res, next) => {
@@ -145,4 +189,4 @@ if (require.main === module) {
     http.listen(port, () => console.log('UNA Chat: http://localhost:' + port));
   } catch (error) { console.error(error.message); process.exitCode = 1; }
 }
-module.exports = { createChatServer };
+module.exports = { createChatServer, SOCKET_PATH };

@@ -15,3 +15,6 @@ node_modules/
 
 # harness (estado de ejecuciones, bloqueos y FoFo clonado)
 .harness/
+.vercel
+/evidencias/lab8/*.jpg
+/evidencias/lab8/*.png
