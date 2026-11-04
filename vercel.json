@@ -1,0 +1,20 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "framework": null,
+  "fluid": true,
+  "functions": {
+    "api/chat.js": {
+      "includeFiles": "public/validators/**"
+    }
+  },
+  "rewrites": [
+    { "source": "/", "destination": "/api/chat" },
+    { "source": "/auth/login", "destination": "/api/chat" },
+    { "source": "/auth/callback", "destination": "/api/chat" },
+    { "source": "/auth/logout", "destination": "/api/chat" },
+    { "source": "/api/me", "destination": "/api/chat" },
+    { "source": "/validators.js", "destination": "/api/chat" },
+    { "source": "/api/chat/socket.io", "destination": "/api/chat" },
+    { "source": "/api/chat/socket.io/socket.io.js", "destination": "/api/chat" }
+  ]
+}

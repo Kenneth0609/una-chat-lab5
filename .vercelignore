@@ -1,0 +1,8 @@
+.env*
+evidencias/
+harness/
+openspec/
+test/
+tests/
+test-results/
+playwright-report/

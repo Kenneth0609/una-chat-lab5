@@ -4,6 +4,7 @@
 //   npx playwright test --project=chromium --headed
 //   npx playwright show-report
 const { test, expect } = require('@playwright/test');
+const { login } = require('../support/browser-auth');
 
 // medios de prueba conocidos y estables
 const IMAGEN = 'https://upload.wikimedia.org/wikipedia/commons/4/47/PNG_transparency_demonstration_1.png';
@@ -13,13 +14,13 @@ const SCRIPT_PASO_2 = "<script>alert('Inyección de script');</script>";
 
 // escribe nombre y mensaje y pulsa Send, como lo haria una persona
 async function enviarMensaje(page, texto, nombre = 'Playwright') {
-  await page.getByRole('textbox', { name: 'Username' }).fill(nombre);
+  await expect(page.getByRole('textbox', { name: 'Username' })).toHaveValue('Ana');
   await page.getByRole('textbox', { name: 'Escriba un mensaje' }).fill(texto);
   await page.getByRole('button', { name: 'Send' }).click();
 }
 
 test.beforeEach(async ({ page }) => {
-  await page.goto('/');
+  await login(page);
   await expect(page).toHaveTitle('Chat Socket.IO UNA');
 });
 
@@ -84,7 +85,7 @@ test('el script del paso 2 no se ejecuta: se rechaza/sanea el mensaje', async ({
 
   await enviarMensaje(page, SCRIPT_PASO_2, 'Atacante');
 
-  const bloqueado = page.getByRole('listitem').filter({ hasText: 'Atacante' });
+  const bloqueado = page.getByRole('listitem').filter({ hasText: 'Ana' });
   await expect(bloqueado).toContainText('[Mensaje bloqueado: contenido no permitido]');
   await expect(bloqueado).not.toContainText('alert');
   await expect(page.locator('#messages script')).toHaveCount(0);
@@ -110,7 +111,7 @@ for (const [descripcion, carga] of [
     });
 
     await enviarMensaje(page, carga, 'Atacante');
-    await expect(page.getByRole('listitem').filter({ hasText: 'Atacante' })).toContainText('[Mensaje bloqueado');
+    await expect(page.getByRole('listitem').filter({ hasText: 'Ana' })).toContainText('[Mensaje bloqueado');
 
     await expect(page.locator('#messages img, #messages svg, #messages iframe, #messages script')).toHaveCount(0);
     await enviarMensaje(page, 'mensaje de control', 'Control');
@@ -129,7 +130,7 @@ test('una URL no permitida se muestra como texto, sin enlace ni reproductor', as
 
 test('el mensaje de un usuario llega a otro usuario conectado', async ({ page, browser }) => {
   const otraPersona = await (await browser.newContext()).newPage();
-  await otraPersona.goto('/');
+  await login(otraPersona);
   await expect(otraPersona).toHaveTitle('Chat Socket.IO UNA');
 
   await enviarMensaje(page, 'mensaje para todos', 'Ana');

@@ -6,11 +6,13 @@ const { expect } = require('@playwright/test');
 
 Given('the chat is open', async function () {
   await this.page.goto(this.baseURL);
+  await this.page.getByRole('link', { name: 'Continuar con Google' }).click();
   await expect(this.page).toHaveTitle('Chat Socket.IO UNA');
 });
 
-Given('the username field contains {string}', async function (nombre) {
-  await this.campoNombre.fill(nombre);
+Given('the authenticated username is {string}', async function (nombre) {
+  await expect(this.campoNombre).toHaveValue(nombre);
+  await expect(this.campoNombre).toHaveAttribute('readonly', '');
 });
 
 Given('the username field is empty', async function () {
