@@ -1,74 +1,148 @@
+'use strict';
+const fs = require('node:fs');
+const path = require('node:path');
+const express = require('express');
+const validation = require('./libs/unalib');
+const { readAuthConfig, identityFromSession, loginPage, SESSION_SECONDS } = require('./libs/auth');
 
-// npm install para descargar los paquetes...
-
-// librerias
-var fs = require('fs');
-var path = require('path');
-var express = require('express');
-var validation = require('./libs/unalib');
-var app = express();
-var http = require('http').Server(app);
-var io = require('socket.io')(http);
-var port = process.env.PORT || 3000;
-
-// Politica de seguridad de contenido (defensa en profundidad): aunque algun codigo lograra colarse
-// en un mensaje, el navegador no ejecutaria scripts en linea ni cargaria scripts de otros sitios.
-var CSP = [
-  "default-src 'self'",
-  "script-src 'self'",
-  "style-src 'self'",
-  "img-src http: https:",
-  "media-src http: https:",
-  "frame-src https://www.youtube.com",
-  "connect-src 'self' ws: wss:",
-  "object-src 'none'",
-  "base-uri 'none'",
-  "form-action 'self'",
-  "frame-ancestors 'none'"
-].join('; ');
-
-app.use(function(req, res, next){
-  res.setHeader('Content-Security-Policy', CSP);
-  res.setHeader('X-Content-Type-Options', 'nosniff');
-  next();
-});
-
-// reglas de envio del cliente: cada archivo de public/validators/ es una regla independiente;
-// se entregan concatenadas (orden alfabetico) para no tener que editar index.html al agregar una
-app.get('/validators.js', function(req, res){
-  var dir = path.join(__dirname, 'public', 'validators');
-  var archivos = fs.existsSync(dir) ? fs.readdirSync(dir).filter(function(f){ return /\.js$/.test(f); }).sort() : [];
-  var codigo = archivos.map(function(f){
-    return '// ' + f + '\n' + fs.readFileSync(path.join(dir, f), 'utf8');
-  }).join('\n');
-  res.type('application/javascript').send(codigo || '// sin reglas de envio\n');
-});
-
-// archivos estaticos del chat (chat.js y chat.css)
-app.use(express.static(path.join(__dirname, 'public')));
-
-// root: presentar html
-app.get('/', function(req, res){
-  res.sendFile(path.join(__dirname, 'index.html'));
-});
-
-// escuchar una conexion por socket
-io.on('connection', function(socket){
-  // si se escucha "chat message"
-  socket.on('Evento-Mensaje-Server', function(msg){
-
-    // la libreria valida y sanea el mensaje (script injection, URLs de imagenes y videos)
-    msg = validation.validateMessage(msg);
-    // volvemos a emitir el mensaje ya saneado
-    io.emit('Evento-Mensaje-Server', msg);
+function createChatServer({ env = process.env, sessionMiddleware } = {}) {
+  const config = readAuthConfig(env);
+  const app = express();
+  const http = require('node:http').createServer(app);
+  const io = new (require('socket.io').Server)(http, { transports: ['websocket'], maxHttpBufferSize: 65536 });
+  const port = Number(env.PORT || 3000);
+  const revoked = new Map();
+  const sessions = express();
+  app.disable('x-powered-by');
+  sessions.disable('x-powered-by');
+  function isActive(identity) { return identity && identity.expiresAt > Date.now() && !revoked.has(identity.key); }
+  function revoke(identity) {
+    for (const [key, expiration] of revoked) if (expiration <= Date.now()) revoked.delete(key);
+    if (!identity) return;
+    revoked.set(identity.key, identity.expiresAt);
+    for (const socket of io.sockets.sockets.values()) {
+      if (socket.data.identity?.key === identity.key) { socket.emit('auth-required'); socket.disconnect(true); }
+    }
+  }
+  function signIn(res, status = 200, message = '') {
+    return res.status(status).send(loginPage({ configured: Boolean(config), message, connection: config?.connection }));
+  }
+  function authFailure(req, res) {
+    return signIn(res, 400, req.query.error === 'access_denied'
+      ? 'Cancelaste el inicio de sesión. Puedes intentarlo de nuevo.'
+      : 'No se pudo iniciar sesión. Inténtalo de nuevo.');
+  }
+  app.use((req, res, next) => {
+    res.setHeader('Content-Security-Policy', ["default-src 'self'", "script-src 'self'", "style-src 'self'",
+      'img-src http: https:', 'media-src http: https:', 'frame-src https://www.youtube.com',
+      "connect-src 'self' ws: wss:", "object-src 'none'", "base-uri 'none'", "form-action 'self'", "frame-ancestors 'none'"].join('; '));
+    res.setHeader('X-Content-Type-Options', 'nosniff');
+    res.setHeader('Cache-Control', 'no-store');
+    next();
   });
-});
-
-// solo se abre el puerto cuando se ejecuta con "npm start" (las pruebas importan este modulo)
-if (require.main === module) {
-  http.listen(port, function(){
-    console.log('listening on *:' + port);
+  if (sessionMiddleware) sessions.use(sessionMiddleware);
+  else if (config) {
+    const { createAuth0 } = require('@auth0/auth0-express');
+    sessions.use(createAuth0({
+      domain: config.domain, clientId: config.clientId, clientSecret: config.clientSecret,
+      sessionSecret: config.sessionSecret, appBaseUrl: config.appBaseUrl, mountRoutes: false,
+      sessionConfiguration: { rolling: false, absoluteDuration: SESSION_SECONDS, inactivityDuration: SESSION_SECONDS,
+        cookie: { secure: config.secure, sameSite: 'lax', path: '/', httpOnly: true } }
+    }));
+  }
+  sessions.use(async (req, res, next) => {
+    try {
+      const session = await req.auth0?.client.getSession({ request: req, response: res });
+      const identity = identityFromSession(session);
+      req.chatIdentity = isActive(identity) ? identity : null;
+      next();
+    } catch { req.chatIdentity = null; next(); }
   });
+  app.use(sessions);
+  app.get('/auth/login', async (req, res) => {
+    if (!config) return signIn(res, 503);
+    try {
+      const url = await req.auth0.client.startInteractiveLogin({ appState: { returnTo: '/' },
+        authorizationParams: { redirect_uri: config.appBaseUrl + '/auth/callback', scope: 'openid profile email', connection: config.connection } });
+      res.redirect(url.href);
+    } catch { authFailure(req, res); }
+  });
+  app.get('/auth/callback', async (req, res) => {
+    if (!config) return signIn(res, 503);
+    try {
+      await req.auth0.client.completeInteractiveLogin(new URL(req.originalUrl, config.appBaseUrl));
+      res.redirect('/');
+    } catch { authFailure(req, res); }
+  });
+  app.get('/auth/logout', async (req, res) => {
+    if (!config) return signIn(res, 503);
+    revoke(req.chatIdentity);
+    try {
+      const url = await req.auth0.client.logout({ returnTo: config.appBaseUrl });
+      res.redirect(url.href);
+    } catch { signIn(res, 502, 'No se pudo cerrar sesión. Vuelve a intentarlo.'); }
+  });
+  app.get('/api/me', (req, res) => {
+    if (!isActive(req.chatIdentity)) return res.status(401).json({ error: 'authentication_required' });
+    res.json(req.chatIdentity.profile);
+  });
+  app.get('/validators.js', (req, res) => {
+    if (!isActive(req.chatIdentity)) return res.sendStatus(401);
+    const dir = path.join(__dirname, 'public', 'validators');
+    const files = fs.readdirSync(dir).filter((file) => /\.js$/.test(file)).sort();
+    res.type('application/javascript').send(files.map((file) => fs.readFileSync(path.join(dir, file), 'utf8')).join('\n') || '// sin reglas de envio\n');
+  });
+  app.use(express.static(path.join(__dirname, 'public')));
+  app.get('/', (req, res) => {
+    if (!isActive(req.chatIdentity)) return signIn(res, config ? 200 : 503);
+    res.sendFile(path.join(__dirname, 'index.html'));
+  });
+  io.engine.use((req, res, next) => {
+    if (!config || (req.headers.origin && req.headers.origin !== config.appBaseUrl)) return next(new Error('authentication_required'));
+    // Express adapta los prototipos; restaurarlos conserva la respuesta especial del upgrade de Engine.IO.
+    const requestPrototype = Object.getPrototypeOf(req);
+    const responsePrototype = Object.getPrototypeOf(res);
+    sessions(req, res, (error) => {
+      Object.setPrototypeOf(req, requestPrototype);
+      Object.setPrototypeOf(res, responsePrototype);
+      if (error || !isActive(req.chatIdentity)) return next(new Error('authentication_required'));
+      next();
+    });
+  });
+  io.use((socket, next) => {
+    if (!isActive(socket.request.chatIdentity)) return next(new Error('authentication_required'));
+    socket.data.identity = socket.request.chatIdentity;
+    next();
+  });
+  io.on('connection', (socket) => {
+    const identity = socket.data.identity;
+    const expiration = setTimeout(() => { socket.emit('auth-required'); socket.disconnect(true); }, Math.max(0, identity.expiresAt - Date.now()));
+    expiration.unref();
+    socket.on('disconnect', () => clearTimeout(expiration));
+    socket.on('Evento-Mensaje-Server', (message) => {
+      if (!isActive(identity)) { socket.emit('auth-required'); socket.disconnect(true); return; }
+      let data;
+      try { data = JSON.parse(message); } catch { data = { mensaje: typeof message === 'string' ? message : '' }; }
+      if (!data || typeof data !== 'object' || Array.isArray(data)) data = { mensaje: typeof data === 'string' ? data : '' };
+      const sanitized = validation.validateMessage(JSON.stringify({ ...data, nombre: identity.profile.name }));
+      for (const recipient of io.sockets.sockets.values()) {
+        if (isActive(recipient.data.identity)) recipient.emit('Evento-Mensaje-Server', sanitized);
+      }
+    });
+  });
+  app.use((error, req, res, next) => {
+    if (res.headersSent) return next(error);
+    if (req.path.startsWith('/auth/')) return authFailure(req, res);
+    res.status(500).send('No se pudo completar la solicitud. Inténtalo de nuevo.');
+  });
+  return { app, http, io, port };
 }
 
-module.exports = { app: app, http: http, io: io, port: port };
+if (require.main === module) {
+  require('dotenv').config({ quiet: true });
+  try {
+    const { http, port } = createChatServer();
+    http.listen(port, () => console.log('UNA Chat: http://localhost:' + port));
+  } catch (error) { console.error(error.message); process.exitCode = 1; }
+}
+module.exports = { createChatServer };

@@ -47,7 +47,7 @@ setWorldConstructor(ChatWorld);
 
 BeforeAll(async function () {
   if (!process.env.BDD_BASE_URL && !(await responde(BASE_URL))) {
-    servidor = spawn(process.execPath, ['server.js'], {
+    servidor = spawn(process.execPath, ['tests/support/auth-fixture.js'], {
       cwd: path.join(__dirname, '..', '..', '..'),
       env: Object.assign({}, process.env, { PORT: String(PORT) }),
       stdio: 'ignore',

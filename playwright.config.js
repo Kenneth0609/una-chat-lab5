@@ -29,10 +29,10 @@ module.exports = defineConfig({
     },
   ],
   webServer: {
-    command: 'npm start',
+    command: 'node tests/support/auth-fixture.js',
     url: BASE_URL,
     env: { PORT: String(PORT) },
-    reuseExistingServer: !process.env.CI,
+    reuseExistingServer: false,
     timeout: 30 * 1000,
   },
 });

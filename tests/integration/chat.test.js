@@ -7,10 +7,13 @@
 //
 // Ejecutar: npx jest tests/integration --runInBand --env=node
 
-const request = require('supertest');
+const supertest = require('supertest');
+const request = (target) => supertest.agent(target).set('Cookie', 'test-session=valid');
 const { io: conectarCliente } = require('socket.io-client');
 const unalib = require('../../libs/unalib');
-const { app, http, io } = require('../../server');
+const { createChatServer } = require('../../server');
+const { env, sessionMiddleware } = require('../support/session-stub');
+const { app, http, io } = createChatServer({ env, sessionMiddleware });
 
 const EVENTO = 'Evento-Mensaje-Server';
 const IMAGEN = 'https://upload.wikimedia.org/wikipedia/commons/4/47/PNG_transparency_demonstration_1.png';
@@ -26,7 +29,7 @@ let clientes = [];
 // abre una conexion Socket.IO real contra el servidor levantado por la prueba
 function conectar() {
   return new Promise((resolve, reject) => {
-    const socket = conectarCliente(urlServidor, { transports: ['websocket'], forceNew: true, reconnection: false });
+    const socket = conectarCliente(urlServidor, { transports: ['websocket'], forceNew: true, reconnection: false, extraHeaders: { Cookie: 'test-session=valid' } });
     clientes.push(socket);
     socket.on('connect', () => resolve(socket));
     socket.on('connect_error', reject);
@@ -81,7 +84,7 @@ describe('rutas HTTP (Supertest)', () => {
     expect(res.headers['content-type']).toMatch(/text\/html/);
     expect(res.text).toContain('id="messages"');
     expect(res.text).toContain('id="nombre"');
-    expect(res.text).toContain('<button>Send</button>');
+    expect(res.text).toContain('<button disabled>Send</button>');
   });
 
   test('la pagina no carga scripts de terceros ni tiene scripts en linea', async () => {
@@ -233,7 +236,7 @@ describe('evento Socket.IO "Evento-Mensaje-Server" + una-lib', () => {
       color: 'red;background:url(javascript:alert(1))'
     }));
 
-    expect(respuesta.nombre).toBe('Eva');
+    expect(respuesta.nombre).toBe('Ana'); // la identidad proviene de la sesión autenticada
     expect(respuesta.color).toBe('#000000');
   });
 

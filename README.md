@@ -1,4 +1,77 @@
-# UNA Chat — Laboratorio 5 (Paradigmas de Programación, UNA 2026)
+# UNA Chat — Laboratorios 5 y 8 (Paradigmas de Programación, UNA 2026)
+
+## Laboratorio 8 y autenticación social
+
+El chat requiere una sesión de Auth0. El inicio de sesión se realiza con Google en una **Regular Web Application**; la sesión se conserva en una cookie cifrada y HttpOnly. El servidor protege la página, `/api/me`, las reglas de envío y las conexiones Socket.IO. El autor de un mensaje proviene de la sesión, aunque el cliente intente enviar otro nombre. Las sesiones locales duran como máximo una hora; logout revoca la sesión y desconecta sus sockets en el proceso actual.
+
+### Preparar Auth0
+
+1. Crear una cuenta personal y un tenant en Auth0.
+2. Crear **UNA Chat**, de tipo **Regular Web Application**.
+3. En **Connections**, habilitar al menos **google-oauth2**. La aplicación usa Universal Login y solicita únicamente `openid profile email`.
+4. En **Settings**, guardar estas URLs para el entorno local:
+
+| Campo | Valor local |
+| --- | --- |
+| Allowed Callback URLs | `http://localhost:3000/auth/callback` |
+| Allowed Logout URLs | `http://localhost:3000` |
+| Allowed Web Origins | `http://localhost:3000` |
+
+### Variables y ejecución local
+
+Requiere Node.js 24. Copiar `.env.example` a `.env` y completar las variables en la computadora, sin subir ese archivo ni sus valores a Git:
+
+| Variable | Uso |
+| --- | --- |
+| `AUTH0_DOMAIN` | Dominio del tenant, sin `https://` ni rutas |
+| `AUTH0_CLIENT_ID` | Identificador de la aplicación UNA Chat |
+| `AUTH0_CLIENT_SECRET` | Secreto de esa aplicación, solo en el servidor |
+| `AUTH0_SESSION_SECRET` | Al menos 32 bytes aleatorios expresados como 64 caracteres hexadecimales; mantener estable entre reinicios |
+| `AUTH0_CONNECTION` | `google-oauth2` por defecto |
+| `APP_BASE_URL` | Origen exacto de la aplicación, por ejemplo `http://localhost:3000` |
+| `PORT` | Puerto local, 3000 por defecto |
+
+Para generar el secreto de sesión se puede usar `node -e "console.log(require('node:crypto').randomBytes(32).toString('hex'))"` y copiar el resultado únicamente al archivo privado. No usar valores de ejemplo como secretos reales.
+
+```sh
+npm ci
+npm start
+```
+
+Abrir `http://localhost:3000`, elegir **Continuar con Google** y completar la autenticación. El chat muestra la identidad autenticada y **Cerrar sesión**. Si se cancela el login, se muestra un aviso con la opción de reintentarlo. Si faltan variables, el servidor muestra una página de configuración con estado 503 y mantiene bloqueado el chat.
+
+El código de pruebas en `tests/support/auth-fixture.js` implementa un proveedor OIDC local y temporal con tokens firmados, canje de código y validación PKCE. Solo se inicia mediante los comandos de prueba; `npm start` siempre usa Auth0 real y no tiene un modo público para desactivar la autenticación.
+
+### Verificación
+
+```sh
+npm run test:unit
+npm run test:integration
+npm run test:auth
+npm run test:bdd
+npm run test:e2e
+```
+
+`npm run test:verify` ejecuta esas cinco suites sin invocar el flujo del harness. Playwright y Cucumber necesitan Chromium: `npx playwright install chromium`. Las pruebas de navegador levantan su propio servidor y proveedor OIDC. Si el puerto 3000 ya está ocupado, usar otro puerto en `PORT`; el proveedor de pruebas usa el puerto siguiente. En PowerShell: `$env:PORT='3210'` antes de ejecutar las suites. No ejecutar simultáneamente BDD y E2E sobre los mismos puertos.
+
+Las pruebas con el proveedor local no sustituyen la comprobación del login social real. El ciclo real Google → UNA Chat → mensaje autenticado → logout se verificó en el puerto 3210; sus capturas y resultados están en [evidencias/lab8/validacion-local.md](evidencias/lab8/validacion-local.md). El despliegue de Vercel todavía no está verificado.
+
+### Preparar el despliegue de Vercel
+
+El despliegue está pendiente. Antes de publicarlo:
+
+1. Configurar un mecanismo compartido de difusión de mensajes y revocación de sesiones entre instancias. La difusión y revocación actuales son locales a un proceso; no bastan para múltiples instancias de Vercel.
+2. Añadir un punto de entrada que exporte el servidor HTTP con el WebSocket y configurar las rutas del despliegue. El cliente ya utiliza transporte `websocket` directo, como requiere la documentación actual de Vercel.
+3. Configurar las variables en el proyecto Vercel. `APP_BASE_URL` debe ser el origen HTTPS exacto del despliegue. Usar secretos propios del entorno y no publicarlos en HTML, JavaScript ni README.
+4. Añadir en Auth0 `https://DOMINIO/auth/callback` a callbacks y `https://DOMINIO` a logout y orígenes permitidos. Sustituir DOMINIO por el dominio real; conservar las URLs locales para desarrollo.
+5. Revisar las credenciales del proveedor Google: las development keys de Auth0 son para pruebas y pueden exigir credenciales propias antes de producción.
+6. Con aprobación humana, desplegar y comprobar desde dos sesiones de navegador el login, la identidad, los mensajes, la cancelación y logout. Registrar la URL real y las evidencias; no marcar esta etapa completa antes de verificarla.
+
+Referencias oficiales: [SDK de Auth0 para Express](https://github.com/auth0/auth0-express/tree/main/packages/auth0-express), [WebSockets y Socket.IO en Vercel](https://vercel.com/docs/functions/websockets).
+
+La sección 3 de Lab8 sobre rsc-harness está omitida por indicación del usuario. El harness existente de Lab5 se conserva sin ejecutarlo para esta integración.
+
+## Antecedentes del Laboratorio 5
 
 Chat con Express + Socket.IO. El laboratorio consiste en encontrar y corregir una vulnerabilidad de
 inyección de scripts, permitir imágenes y videos por URL de forma segura y cubrir todo con tres
@@ -21,7 +94,7 @@ npm start            # http://localhost:3000  (frontend + backend en el mismo pr
 
 - `npm run test:all` ejecuta las tres en orden.
 - La primera vez hay que instalar el navegador de Playwright: `npx playwright install chromium`.
-- Playwright inicia el chat con `npm start` si no hay uno activo (`playwright.config.js`, `webServer`).
+- Desde Lab8, Playwright inicia su propio chat y proveedor OIDC de pruebas (`playwright.config.js`, `webServer`), sin reutilizar un servidor existente.
   Reporte: `npx playwright show-report`.
 - Jest ignora `tests/e2e` (`testPathIgnorePatterns` en `package.json`), así que los archivos de Playwright
   solo se ejecutan con su propio comando.
@@ -41,8 +114,8 @@ npm start            # http://localhost:3000  (frontend + backend en el mismo pr
    - `nombre` se sanea y `color` solo puede ser `#RRGGBB` (se usa dentro de un atributo `style`).
    - Se corrigieron los bugs del código original: `is_valid_url_image` y `is_valid_yt_video` usaban una variable
      inexistente (`phone`), por lo que siempre devolvían `false` y 3 de las 5 pruebas existentes fallaban.
-4. **Servidor** (`server.js`): sigue llamando a `validateMessage` en cada mensaje; ahora exporta `app/http/io` para
-   las pruebas (solo abre el puerto con `npm start`) y envía `Content-Security-Policy` y `X-Content-Type-Options`.
+4. **Servidor** (`server.js`): sigue llamando a `validateMessage` en cada mensaje; en Lab8 exporta `createChatServer`
+   para construir instancias aisladas en las pruebas (solo abre el puerto con `npm start`) y envía `Content-Security-Policy` y `X-Content-Type-Options`.
 5. **Frontend** (`index.html`, `public/chat.js`, `public/chat.css`): sin jQuery 1.11.1 (vulnerable) ni CDNs,
    sin scripts en línea, usa el cliente de Socket.IO que entrega el propio servidor.
 6. **Escaneo de dependencias** (paso 11): ver `SEGURIDAD-DEPENDENCIAS.md`.

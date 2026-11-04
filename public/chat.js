@@ -1,6 +1,6 @@
 (function () {
 
-  var socket = io();
+  var socket = io({ transports: ['websocket'], autoConnect: false });
   var colorHexTxt = "";
 
   // genera colores aleatorios en hexadeximal
@@ -19,6 +19,38 @@
   var mensaje = document.getElementById('m');
   var lista = document.getElementById('messages');
   var aviso = document.getElementById('aviso');
+  var enviar = form.querySelector('button');
+  var identity = document.getElementById('identity');
+  function requireLogin() {
+    enviar.disabled = true;
+    socket.disconnect();
+    window.location.assign('/');
+  }
+  fetch('/api/me', { cache: 'no-store' }).then(function (response) {
+    if (response.status === 401) { requireLogin(); return null; }
+    if (!response.ok) throw new Error('profile');
+    return response.json();
+  }).then(function (user) {
+    if (!user) return;
+    nombre.value = user.name;
+    identity.textContent = user.name + (user.email ? ' · ' + user.email : '');
+    socket.connect();
+  }).catch(function () { aviso.textContent = 'No se pudo cargar tu sesión. Recarga la página para reintentar.'; });
+  document.getElementById('logout').addEventListener('click', function () { socket.disconnect(); enviar.disabled = true; });
+  socket.on('auth-required', requireLogin);
+  socket.on('connect', function () { enviar.disabled = false; aviso.textContent = ''; });
+  socket.on('disconnect', function (reason) {
+    enviar.disabled = true;
+    if (reason === 'io server disconnect') { requireLogin(); return; }
+    aviso.textContent = 'Se perdió la conexión. Estamos intentando reconectar.';
+  });
+  socket.on('connect_error', function () {
+    enviar.disabled = true;
+    fetch('/api/me', { cache: 'no-store' }).then(function (response) {
+      if (response.status === 401) requireLogin();
+      else aviso.textContent = 'Se perdió la conexión. Estamos intentando reconectar.';
+    }).catch(function () { aviso.textContent = 'Se perdió la conexión. Estamos intentando reconectar.'; });
+  });
 
   // Punto de extension del chat. Cada regla de envio vive en su propio archivo dentro de
   // public/validators/ (el servidor los entrega juntos en /validators.js), asi varias
@@ -57,6 +89,7 @@
   // emite evento al servidor
   form.addEventListener('submit', function (evento) {
     evento.preventDefault();
+    if (!socket.connected) return;
 
     if (validarEnvio({ nombre: nombre.value, mensaje: mensaje.value })) {
       return;
